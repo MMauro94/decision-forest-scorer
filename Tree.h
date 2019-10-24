@@ -1,7 +1,3 @@
-//
-// Created by MMarco on 23/10/2019.
-//
-
 #ifndef FOREST_TREE_EVALUATOR_TREE_H
 #define FOREST_TREE_EVALUATOR_TREE_H
 
@@ -10,54 +6,151 @@
 #include <vector>
 
 class Node {
-	public:
-		virtual double score(std::vector<double> &element) = 0;
-};
-
-class InternalNode : Node {
-
 	private:
-		int featureIndex;
-		double referenceValue;
-		std::shared_ptr<Node> left;
-		std::shared_ptr<Node> right;
-
+		int _treeIndex = 0;
 	public:
-		InternalNode(
-				int featureIndex,
-				double referenceValue,
-				std::shared_ptr<Node> left,
-				std::shared_ptr<Node> right
-		) : featureIndex(featureIndex), referenceValue(referenceValue), left(std::move(left)), right(std::move(right)) {
+		[[nodiscard]] virtual double score(const std::vector<double> &element) const = 0;
+
+		[[nodiscard]] virtual int numberOfLeafs() const = 0;
+
+		[[nodiscard]] int getTreeIndex() const {
+			return this->_treeIndex;
 		}
 
-		double score(std::vector<double> &element) override {
-			if (element[this->featureIndex] <= referenceValue) {
-				return this->left->score(element);
+		virtual void setTreeIndex(int treeIndex) {
+			this->_treeIndex = treeIndex;
+		}
+};
+
+class InternalNode : public Node {
+	public:
+		const int splittingFeatureIndex;
+		const double splittingThreshold;
+		std::shared_ptr<Node> leftNode;
+		std::shared_ptr<Node> rightNode;
+
+		InternalNode(
+				int splittingFeatureIndex,
+				double splittingThreshold,
+				std::shared_ptr<Node> leftNode,
+				std::shared_ptr<Node> rightNode
+		) : splittingFeatureIndex(splittingFeatureIndex), splittingThreshold(splittingThreshold), leftNode(std::move(leftNode)), rightNode(std::move(rightNode)) {}
+
+		[[nodiscard]] double score(const std::vector<double> &element) const override {
+			if (element[this->splittingFeatureIndex] <= splittingThreshold) {
+				return this->leftNode->score(element);
 			} else {
-				return this->right->score(element);
+				return this->rightNode->score(element);
 			}
 		}
+
+		[[nodiscard]] int numberOfLeafs() const override {
+			return this->leftNode->numberOfLeafs() + this->rightNode->numberOfLeafs();
+		}
+
+		void fillNodesForFeature(int featureIndex, std::vector<std::shared_ptr<InternalNode>> &nodes) const {
+			auto leftAsInternalNode = std::dynamic_pointer_cast<InternalNode>(this->leftNode);
+			auto rightAsInternalNode = std::dynamic_pointer_cast<InternalNode>(this->rightNode);
+			if (leftAsInternalNode != nullptr) {
+				if (leftAsInternalNode->splittingFeatureIndex == featureIndex) {
+					nodes.push_back(leftAsInternalNode);
+				}
+				leftAsInternalNode->fillNodesForFeature(featureIndex, nodes);
+			}
+			if (rightAsInternalNode != nullptr) {
+				if (rightAsInternalNode->splittingFeatureIndex == featureIndex) {
+					nodes.push_back(rightAsInternalNode);
+				}
+				rightAsInternalNode->fillNodesForFeature(featureIndex, nodes);
+			}
+		}
+
+		void setTreeIndex(int treeIndex) override {
+			Node::setTreeIndex(treeIndex);
+			this->leftNode->setTreeIndex(treeIndex);
+			this->rightNode->setTreeIndex(treeIndex);
+		}
 };
 
-class Leaf : Node {
+class Leaf : public Node {
 	private:
-		double result;
+		const double _score;
 	public:
-		explicit Leaf(double result) : result(result) {}
+		explicit Leaf(double score) : _score(score) {}
 
-		double score(std::vector<double> &element) override {
-			return this->result;
+		[[nodiscard]] double score(const std::vector<double> &element) const override {
+			return this->_score;
+		}
+
+		[[nodiscard]] int numberOfLeafs() const override {
+			return 1;
 		}
 };
 
 class Tree {
 	private:
 		std::shared_ptr<InternalNode> root;
-
+		int _treeIndex = 0;
 	public:
-		double score(std::vector<double> &element) {
+		explicit Tree(std::shared_ptr<InternalNode> root) : root(std::move(root)) {}
+
+		[[nodiscard]] double score(const std::vector<double> &element) const {
 			return this->root->score(element);
+		}
+
+		[[nodiscard]] int numberOfLeafs() const {
+			return this->root->numberOfLeafs();
+		}
+
+		void fillNodesForFeature(int featureIndex, std::vector<std::shared_ptr<InternalNode>> &nodes) const {
+			if (this->root->splittingFeatureIndex == featureIndex) {
+				nodes.push_back(this->root);
+			}
+			this->root->fillNodesForFeature(featureIndex, nodes);
+		}
+
+		[[nodiscard]] int getTreeIndex() const {
+			return this->_treeIndex;
+		}
+
+		void setTreeIndex(int treeIndex) {
+			this->_treeIndex = treeIndex;
+			this->root->setTreeIndex(treeIndex);
+		}
+};
+
+class Forest {
+	public:
+		std::vector<Tree> trees;
+
+		explicit Forest(std::vector<Tree> &trees) : trees(trees) {
+			for (int index = 0, size = trees.size(); index < size; ++index) {
+				trees[index].setTreeIndex(index);
+			}
+		}
+
+		[[nodiscard]] int maximumNumberOfLeafs() const {
+			int max = 0;
+			for (auto &tree : this->trees) {
+				max = std::max(max, tree.numberOfLeafs());
+			}
+			return max;
+		}
+
+		[[nodiscard]] double score(const std::vector<double> &element) const {
+			double score = 0;
+			for (auto &tree : this->trees) {
+				score += tree.score(element);
+			}
+			return score;
+		}
+
+		[[nodiscard]] std::vector<std::shared_ptr<InternalNode>> getNodesForFeature(int featureIndex) const {
+			auto nodes = std::vector<std::shared_ptr<InternalNode>>();
+			for (auto &t:this->trees) {
+				t.fillNodesForFeature(featureIndex, nodes);
+			}
+			return nodes;
 		}
 };
 

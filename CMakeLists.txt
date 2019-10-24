@@ -3,4 +3,4 @@ project(forest_tree_evaluator)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(forest_tree_evaluator main.cpp Tree.cpp Tree.h)
+add_executable(forest_tree_evaluator Tree.cpp Tree.h test.cpp FeaturesMap.cpp FeaturesMap.h)
