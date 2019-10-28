@@ -24,6 +24,8 @@ public:
     }
 
     [[nodiscard]] virtual int countLeafsUntil(const std::shared_ptr<InternalNode> &node, bool *found) const = 0;
+
+    virtual void fillLeafScores(std::vector<double> &leafScores) const = 0;
 };
 
 class InternalNode : public Node {
@@ -88,6 +90,11 @@ public:
         }
         return ret;
     }
+
+    void fillLeafScores(std::vector<double> &leafScores) const override {
+        this->leftNode->fillLeafScores(leafScores);
+        this->rightNode->fillLeafScores(leafScores);
+    }
 };
 
 class Leaf : public Node {
@@ -107,21 +114,30 @@ public:
     int countLeafsUntil(const std::shared_ptr<InternalNode> &node, bool *found) const override {
         return 1;
     }
+
+    void fillLeafScores(std::vector<double> &leafScores) const override {
+        leafScores.push_back(this->_score);
+    }
 };
 
 class Tree {
 private:
     std::shared_ptr<InternalNode> root;
+    std::vector<double> leafScores;
+    int leafsCount;
     int _treeIndex = 0;
 public:
-    explicit Tree(std::shared_ptr<InternalNode> root) : root(std::move(root)) {}
+    explicit Tree(std::shared_ptr<InternalNode> root) : root(std::move(root)) {
+        this->leafsCount = this->root->numberOfLeafs();
+        this->root->fillLeafScores(this->leafScores);
+    }
 
     [[nodiscard]] double score(const std::vector<double> &element) const {
         return this->root->score(element);
     }
 
     [[nodiscard]] int numberOfLeafs() const {
-        return this->root->numberOfLeafs();
+        return this->leafsCount;
     }
 
     void fillNodesForFeature(int featureIndex, std::vector<std::shared_ptr<InternalNode>> &nodes) const {
@@ -147,6 +163,10 @@ public:
             throw std::logic_error("node not found");
         }
         return ret;
+    }
+
+    [[nodiscard]] double scoreByLeafIndex(unsigned int leafIndex) const {
+        return this->leafScores[leafIndex];
     }
 };
 

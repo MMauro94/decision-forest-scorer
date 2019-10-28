@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <bitset>
+#include <vector>
 
 class Epitome {
 private:
@@ -41,6 +42,14 @@ public:
             this->firstByte |= this->lastByte;
             this->lastByte = this->firstByte;
         }
+    }
+
+    void performAnd(std::vector<uint8_t> &vector) const {
+        vector[this->firstBytePosition] &= this->firstByte;
+        for (int i = this->firstBytePosition + 1; i < this->lastBytePosition; i++) {
+            vector[i] = 0;
+        }
+        vector[this->lastBytePosition] &= this->lastByte;
     }
 
     friend std::ostream &operator<<(std::ostream &os, const Epitome &epitome) {

@@ -28,16 +28,16 @@ int main() {
 
     auto tree = Tree(a);
     std::vector<Tree> trees = {tree};
-    auto forest = Forest(trees);
+    auto forest = std::make_shared<Forest>(trees);
     printf("Leaf count = %d\n", tree.numberOfLeafs());
 
 
     std::vector<double> f1 = {0.5, 0.5, 0.5};
 
-    printf("Score is %f\n", tree.score(f1));
 
-    FeatureEvaluator(forest, 0);
-    FeatureEvaluator(forest, 1);
-    FeatureEvaluator(forest, 2);
+    auto features = FeaturesMap(forest, 3);
+
+    printf("Score Normal is %f\n", forest->score(f1));
+    printf("Score Fast is %f\n", features.score(f1));
     return 0;
 }
