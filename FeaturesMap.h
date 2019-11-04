@@ -12,63 +12,66 @@
 #include "ResultMask.h"
 
 class FeatureEvaluator {
-private:
-    std::vector<double> splittingThreshold;
-    std::vector<Epitome> masks;
-    std::vector<int> treeIndexes;
-    int featureIndex;
-public:
-    FeatureEvaluator(
-            const std::shared_ptr<Forest>& forest,
-            int featureIndex
-    ) : featureIndex(featureIndex) {
-        auto nodes = forest->getNodesForFeature(featureIndex);
-        std::sort(nodes.begin(), nodes.end(), [](auto &a, auto &b) -> bool {
-            return a->splittingThreshold < b->splittingThreshold;
-        });
+	private:
+		std::vector<double> splittingThreshold;
+		std::vector<Epitome> masks;
+		std::vector<int> treeIndexes;
+		int featureIndex;
+	public:
+		FeatureEvaluator(
+				const std::shared_ptr<Forest> &forest,
+				const std::vector<std::vector<std::shared_ptr<InternalNode>>> &nodesByFeature,
+				int featureIndex
+		) : featureIndex(featureIndex) {
+			auto nodes = nodesByFeature[featureIndex];
+			std::sort(nodes.begin(), nodes.end(), [](auto &a, auto &b) -> bool {
+				return a->splittingThreshold < b->splittingThreshold;
+			});
 
 
-        for (auto &n : nodes) {
-            splittingThreshold.push_back(n->splittingThreshold);
-            treeIndexes.push_back(n->getTreeIndex());
+			for (auto &n : nodes) {
+				splittingThreshold.push_back(n->splittingThreshold);
+				treeIndexes.push_back(n->getTreeIndex());
 
-            masks.emplace_back(forest->trees[n->getTreeIndex()].countLeafsUntil(n), n->leftNode->numberOfLeafs());
-        }
-    }
+				masks.emplace_back(forest->trees[n->getTreeIndex()].countLeafsUntil(n), n->leftNode->numberOfLeafs());
+			}
+		}
 
-    void evaluate(ResultMask &result, const std::vector<double> &element) const {
-        double value = element[this->featureIndex];
-        for(unsigned long i = 0; i < this->splittingThreshold.size(); i++) {
-            if(value > this->splittingThreshold[i]) {
-                result.applyMask(this->masks[i], this->treeIndexes[i]);
-            } else {
-                return;
-            }
-        }
-    }
+		void evaluate(ResultMask &result, const std::vector<double> &element) const {
+			double value = element[this->featureIndex];
+			for (unsigned long i = 0; i < this->splittingThreshold.size(); i++) {
+				if (value > this->splittingThreshold[i]) {
+					result.applyMask(this->masks[i], this->treeIndexes[i]);
+				} else {
+					return;
+				}
+			}
+		}
 };
 
 class FeaturesMap {
-private:
-    std::shared_ptr<Forest> forest;
-    std::vector<FeatureEvaluator> evaluators;
-public:
+	private:
+		std::shared_ptr<Forest> forest;
+		std::vector<FeatureEvaluator> evaluators;
+	public:
 
-    FeaturesMap(std::shared_ptr<Forest> forest, int featuresCount) : forest(std::move(forest)) {
-        for (int i = 0; i < featuresCount; i++) {
-            evaluators.emplace_back(this->forest, i);
-        }
-    }
+		FeaturesMap(std::shared_ptr<Forest> forest, int featuresCount) : forest(std::move(forest)) {
+			auto nodesByFeature = this->forest->getNodesByFeature(featuresCount);
+			for (int i = 0; i < featuresCount; i++) {
+				evaluators.emplace_back(this->forest, nodesByFeature, i);
+			}
+		}
 
-    [[nodiscard]] double score(const std::vector<double> &element) const {
-        ResultMask result(this->forest);
-        for(auto &evaluator : this->evaluators) {
-            evaluator.evaluate(result, element);
-        }
-        return result.computeScore();
-    }
+		[[nodiscard]] double score(const std::vector<double> &document) const {
+			ResultMask result;
+			result.initialize(this->forest);
+#pragma omp parallel for default(none) shared(document) shared(result)
+			for (unsigned long i = 0; i < document.size(); i++) {
+				this->evaluators[i].evaluate(result, document);
+			}
+			return result.computeScore();
+		}
 };
-
 
 
 #endif //FOREST_TREE_EVALUATOR_FEATURESMAP_H

@@ -1,43 +1,91 @@
 #include <memory>
+#include <random>
+#include <chrono>
 #include "../Tree.h"
 #include "../FeaturesMap.h"
 
+double dRand(double min, double max) {
+	double d = (double) rand() / RAND_MAX;
+	return min + d * (max - min);
+}
+
+double iRand(int min, int max) {
+	return rand() % (max - min) + min;
+}
+
+std::vector<double> generateDocument(int size, int seed) {
+	srand(seed);
+	std::vector<double> ret = {};
+	for (int i = 0; i < size; i++) {
+		ret.push_back(dRand(0, 1));
+	}
+	return ret;
+}
+
+std::shared_ptr<InternalNode> generateNode(int numberOfLeaves, int maxFeatures) {
+	std::shared_ptr<Node> left, right;
+	if (numberOfLeaves <= 3) {
+		left = std::make_shared<Leaf>(dRand(0, 1));
+		right = std::make_shared<Leaf>(dRand(0, 1));
+	} else {
+		left = generateNode(numberOfLeaves / 2, maxFeatures);
+		right = generateNode(numberOfLeaves / 2, maxFeatures);
+	}
+	return std::make_shared<InternalNode>(
+			iRand(0, maxFeatures),
+			dRand(0, 1),
+			left,
+			right
+	);
+}
+
+Tree generateTree(int numberOfLeaves, int maxFeatures, int seed) {
+	srand(seed);
+	return Tree(generateNode(numberOfLeaves, maxFeatures));
+}
+
+#define N_TEST 100
+#define N_DOCUMENTS 10
+#define N_FEATURES 1000
+#define N_LEAVES 400
+#define N_TREES 1000
+
 int main() {
-    /*
-     * 	       A
-     * 	   B       C
-     * 	 D   E   F   G
-     * 	H I     N O P Q
-     */
-    auto h = std::make_shared<Leaf>(0.1);
-    auto i = std::make_shared<Leaf>(0.2);
-    auto n = std::make_shared<Leaf>(0.3);
-    auto o = std::make_shared<Leaf>(0.4);
-    auto p = std::make_shared<Leaf>(0.5);
-    auto q = std::make_shared<Leaf>(0.6);
+	std::vector<Tree> trees = {};
+	for (int num = 0; num < N_TREES; num++) {
+		trees.push_back(generateTree(N_LEAVES, N_FEATURES, num));
+	}
+	auto forest = std::make_shared<Forest>(trees);
+	std::cout << "Piantati" << std::endl;
 
-    auto d = std::make_shared<InternalNode>(0, 1.1, h, i);
-    auto e = std::make_shared<Leaf>(0.7);
-    auto f = std::make_shared<InternalNode>(2, 1.2, n, o);
-    auto g = std::make_shared<InternalNode>(1, 1.3, p, q);
+	std::vector<std::vector<double>> documents = {};
+	for (int num = 0; num < N_DOCUMENTS; num++) {
+		documents.push_back(generateDocument(N_FEATURES, num));
+	}
+	std::cout << "Docs" << std::endl;
 
-    auto b = std::make_shared<InternalNode>(0, 1.4, d, e);
-    auto c = std::make_shared<InternalNode>(1, 1.5, f, g);
+	auto features = FeaturesMap(forest, N_FEATURES);
+	std::cout << "Created feature map" << std::endl;
 
-    auto a = std::make_shared<InternalNode>(2, 1.6, b, c);
+	/*for (long n = 0; n < documents.size(); n++) {
+		std::cout << "Evaluating document " << n << std::endl;
+		auto d = documents[n];
+		if (forest->score(d) != features.score(d)) {
+			std::cout << "Mismatch!" << std::endl;
+		}
+	}*/
 
-    auto tree = Tree(a);
-    std::vector<Tree> trees = {tree};
-    auto forest = std::make_shared<Forest>(trees);
-    printf("Leaf count = %d\n", tree.numberOfLeafs());
+	std::cout << "Starting doc evaluation" << std::endl;
 
+	auto start = std::chrono::high_resolution_clock::now();
+	for (long test = 0; test < N_TEST; test++) {
+		for (auto &d:documents) {
+			double result = features.score(d);
+		}
+	}
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+	std::cout << "Evaluating took " << duration.count() / 1000000.0 << " sec" << std::endl;
 
-    std::vector<double> f1 = {0.5, 0.5, 0.5};
-
-
-    auto features = FeaturesMap(forest, 3);
-
-    printf("Score Normal is %f\n", forest->score(f1));
-    printf("Score Fast is %f\n", features.score(f1));
-    return 0;
+	return 0;
 }
