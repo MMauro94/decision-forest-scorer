@@ -67,13 +67,15 @@ int main() {
 	auto features = FeaturesMap(forest, N_FEATURES);
 	std::cout << "Created feature map" << std::endl;
 
-	/*for (long n = 0; n < documents.size(); n++) {
-		std::cout << "Evaluating document " << n << std::endl;
-		auto d = documents[n];
+	//Performing a basic test to ensure that there are no errors
+	std::cout << "Performing a test" << std::endl;
+	for (auto &d : documents) {
 		if (forest->score(d) != features.score(d)) {
-			std::cout << "Mismatch!" << std::endl;
+			std::cout << "Test failed: Mismatch!" << std::endl;
+			exit(1);
 		}
-	}*/
+	}
+	std::cout << "Test passed!" << std::endl;
 
 	std::cout << "Starting doc evaluation" << std::endl;
 

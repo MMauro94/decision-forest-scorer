@@ -8,19 +8,30 @@
 
 #include <vector>
 #include <stdint-gcc.h>
+#include <mutex>
+#include <deque>
+#include <atomic>
+#include "config.h"
 #include "Tree.h"
 #include "Epitome.h"
 
 class ResultMask {
 	private:
 		std::shared_ptr<Forest> _forest;
-		std::vector<std::vector<uint8_t>> masks;
+#if PARALLEL_MASK
+		std::deque<MaskType> masks;//TODO: use vector qui
+#else
+		std::vector<MaskType> masks;
+#endif
 	public:
 
-		void initialize(std::shared_ptr<Forest> forest) {
-			this->_forest = std::move(forest);
+		explicit ResultMask(std::shared_ptr<Forest> forest) : _forest(std::move(forest)) {
 			for (auto &t : this->_forest->trees) {
-				masks.emplace_back(t.numberOfLeafs() / 8 + 1, 255);
+				int maskByteSize = t.numberOfLeafs() / 8 + 1;
+				auto &list = masks.emplace_back(maskByteSize);
+				for (int i = 0; i < maskByteSize; i++) {
+					list[i] = 255;
+				}
 			}
 		}
 
@@ -40,7 +51,7 @@ class ResultMask {
 
 	private:
 
-		static unsigned int firstOne(const std::vector<uint8_t> &vector) {
+		static unsigned int firstOne(const MaskType &vector) {
 			int ret = 0;
 			int i = 0;
 			while (vector[i] == 0) {

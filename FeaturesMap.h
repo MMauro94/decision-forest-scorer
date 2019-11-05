@@ -30,10 +30,10 @@ class FeatureEvaluator {
 
 
 			for (auto &n : nodes) {
-				splittingThreshold.push_back(n->splittingThreshold);
-				treeIndexes.push_back(n->getTreeIndex());
+				this->splittingThreshold.push_back(n->splittingThreshold);
+				this->treeIndexes.push_back(n->getTreeIndex());
 
-				masks.emplace_back(forest->trees[n->getTreeIndex()].countLeafsUntil(n), n->leftNode->numberOfLeafs());
+				this->masks.emplace_back(forest->trees[n->getTreeIndex()].countLeafsUntil(n), n->leftNode->numberOfLeafs());
 			}
 		}
 
@@ -63,8 +63,10 @@ class FeaturesMap {
 		}
 
 		[[nodiscard]] double score(const std::vector<double> &document) const {
-			ResultMask result;
-			result.initialize(this->forest);
+			ResultMask result(this->forest);
+#if PARALLEL_MASK
+#pragma omp parallel for default(none) shared(result) shared(document)
+#endif
 			for (unsigned long i = 0; i < document.size(); i++) {
 				this->evaluators[i].evaluate(result, document);
 			}
