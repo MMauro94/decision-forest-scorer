@@ -70,8 +70,11 @@ int main() {
 	//Performing a basic test to ensure that there are no errors
 	std::cout << "Performing a test" << std::endl;
 	for (auto &d : documents) {
-		if (forest->score(d) != features.score(d)) {
-			std::cout << "Test failed: Mismatch!" << std::endl;
+		double baseScore = forest->score(d);
+		double fastScore = features.score(d);
+		//Avoiding floating point mismatchs
+		if (std::abs(baseScore - fastScore) > 0.00001) {
+			std::cout << "Test failed: Mismatch: expecting " << baseScore << ", found " << fastScore << std::endl;
 			exit(1);
 		}
 	}

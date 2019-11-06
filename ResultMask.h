@@ -18,20 +18,20 @@
 class ResultMask {
 	private:
 		std::shared_ptr<Forest> _forest;
-#if PARALLEL_MASK
-		std::deque<MaskType> masks;//TODO: use vector qui
-#else
 		std::vector<MaskType> masks;
-#endif
+
 	public:
 
-		explicit ResultMask(std::shared_ptr<Forest> forest) : _forest(std::move(forest)) {
-			for (auto &t : this->_forest->trees) {
+		explicit ResultMask(std::shared_ptr<Forest> forest) : _forest(std::move(forest)), masks(this->_forest->trees.size()) {
+#pragma omp parallel for if(PARALLEL_INIT) default(none)
+			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
+				auto &t = this->_forest->trees[i];
 				int maskByteSize = t.numberOfLeafs() / 8 + 1;
-				auto &list = masks.emplace_back(maskByteSize);
-				for (int i = 0; i < maskByteSize; i++) {
-					list[i] = 255;
+				auto mask = MaskType(maskByteSize);
+				for (int j = 0; j < maskByteSize; j++) {
+					mask[j] = 255;
 				}
+				this->masks[i].swap(mask);
 			}
 		}
 
@@ -40,10 +40,11 @@ class ResultMask {
 		}
 
 		[[nodiscard]] double computeScore() const {
-			double score = 0;
+			double score = 0.0;
+#pragma omp parallel for if(PARALLEL_SCORE) default(none) reduction(+:score)
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
 				auto leafIndex = firstOne(this->masks[i]);
-				auto tree = this->_forest->trees[i];
+				auto &tree = this->_forest->trees[i];
 				score += tree.scoreByLeafIndex(leafIndex);
 			}
 			return score;

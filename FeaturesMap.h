@@ -64,9 +64,7 @@ class FeaturesMap {
 
 		[[nodiscard]] double score(const std::vector<double> &document) const {
 			ResultMask result(this->forest);
-#if PARALLEL_MASK
-#pragma omp parallel for default(none) shared(result) shared(document)
-#endif
+#pragma omp parallel for if(PARALLEL_MASK) default(none) shared(result) shared(document)
 			for (unsigned long i = 0; i < document.size(); i++) {
 				this->evaluators[i].evaluate(result, document);
 			}
