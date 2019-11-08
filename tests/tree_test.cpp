@@ -2,7 +2,7 @@
 #include <random>
 #include <chrono>
 #include "../Tree.h"
-#include "../FeaturesMap.h"
+#include "../OldFeaturesMap.h"
 
 double dRand(double min, double max) {
 	double d = (double) rand() / RAND_MAX;

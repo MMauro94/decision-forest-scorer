@@ -3,7 +3,7 @@
 //
 
 #define PARALLEL_MASK true
-#define PARALLEL_SCORE false
+#define PARALLEL_SCORE true
 #define PARALLEL_INIT true
 
 #if PARALLEL_MASK

@@ -2,8 +2,8 @@
 // Created by Marco on 23/10/2019.
 //
 
-#ifndef FOREST_TREE_EVALUATOR_FEATURESMAP_H
-#define FOREST_TREE_EVALUATOR_FEATURESMAP_H
+#ifndef FOREST_TREE_EVALUATOR_OLDFEATURESMAP_H
+#define FOREST_TREE_EVALUATOR_OLDFEATURESMAP_H
 
 #include <vector>
 #include <algorithm>
@@ -11,14 +11,14 @@
 #include "Epitome.h"
 #include "ResultMask.h"
 
-class FeatureEvaluator {
+class OldFeatureEvaluator {
 	private:
 		std::vector<double> splittingThreshold;
 		std::vector<Epitome> masks;
 		std::vector<int> treeIndexes;
 		int featureIndex;
 	public:
-		FeatureEvaluator(
+		OldFeatureEvaluator(
 				const std::shared_ptr<Forest> &forest,
 				const std::vector<std::vector<std::shared_ptr<InternalNode>>> &nodesByFeature,
 				int featureIndex
@@ -49,13 +49,13 @@ class FeatureEvaluator {
 		}
 };
 
-class FeaturesMap {
+class OldFeaturesMap {
 	private:
 		std::shared_ptr<Forest> forest;
-		std::vector<FeatureEvaluator> evaluators;
+		std::vector<OldFeatureEvaluator> evaluators;
 	public:
 
-		FeaturesMap(std::shared_ptr<Forest> forest, int featuresCount) : forest(std::move(forest)) {
+		OldFeaturesMap(std::shared_ptr<Forest> forest, int featuresCount) : forest(std::move(forest)) {
 			auto nodesByFeature = this->forest->getNodesByFeature(featuresCount);
 			for (int i = 0; i < featuresCount; i++) {
 				evaluators.emplace_back(this->forest, nodesByFeature, i);
@@ -73,4 +73,4 @@ class FeaturesMap {
 };
 
 
-#endif //FOREST_TREE_EVALUATOR_FEATURESMAP_H
+#endif //FOREST_TREE_EVALUATOR_OLDFEATURESMAP_H
