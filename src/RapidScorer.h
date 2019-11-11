@@ -48,10 +48,12 @@ class RapidScorer {
 		[[nodiscard]] double score(const std::vector<double> &document) const {
 			ResultMask result(this->forest);
 
-#pragma omp parallel for if(PARALLEL_MASK) default(none) shared(result) shared(document)
-			for (unsigned long featureIndex = 0; featureIndex < document.size(); featureIndex++) {
+			unsigned long max = this->offsets.size();
+#pragma omp parallel for if(PARALLEL_MASK) default(none) shared(result) shared(document) shared(max)
+			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
 				double value = document[featureIndex];
-				for (unsigned long j = this->offsets[featureIndex]; this->nodes[j].featureIndex == featureIndex; j++) {
+				for (unsigned long j = this->offsets[featureIndex];
+					 this->nodes[j].featureIndex == featureIndex; j++) {
 					const EqNode &node = this->nodes[j];
 					if (value > node.featureThreshold) {
 						result.applyMask(node.epitome, node.treeIndex);

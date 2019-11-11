@@ -44,7 +44,7 @@ class InternalNode : public Node {
 			leftNode(std::move(leftNode)), rightNode(std::move(rightNode)) {}
 
 		[[nodiscard]] double score(const std::vector<double> &element) const override {
-			if (element[this->splittingFeatureIndex] <= splittingThreshold) {
+			if (element[this->splittingFeatureIndex] <= this->splittingThreshold) {
 				return this->leftNode->score(element);
 			} else {
 				return this->rightNode->score(element);
