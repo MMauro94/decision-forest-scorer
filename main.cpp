@@ -1,7 +1,7 @@
 #include <iostream>
 #include "json.hpp"
 #include "Tree.h"
-#include "OldFeaturesMap.h"
+#include "RapidScorer.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -72,9 +72,10 @@ int main() {
     const std::vector<double> &doc = parseDocument("doc1");
 
     //double score = f->score(doc);
-    OldFeaturesMap fmap(f, doc.size());
-    double score = fmap.score(doc);
-    
+    RapidScorer scorer(f);
+
+    double score = scorer.score(doc);
+
     std::cout << score << std::endl;
     return 0;
 }

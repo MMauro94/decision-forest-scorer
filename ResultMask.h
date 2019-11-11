@@ -35,7 +35,7 @@ class ResultMask {
 			}
 		}
 
-		void applyMask(const Epitome &mask, const int treeIndex) {
+		void applyMask(const Epitome &mask, const unsigned int treeIndex) {
 			mask.performAnd(this->masks[treeIndex]);
 		}
 

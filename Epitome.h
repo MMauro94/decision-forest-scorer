@@ -23,6 +23,9 @@ class Epitome {
 		uint8_t lastBytePosition;
 
 	public:
+
+		Epitome(const Epitome &other) = default;
+
 		Epitome(int leftOnes, int middleZeroes) {
 			if (leftOnes < 0 || middleZeroes <= 0) {
 				throw std::invalid_argument("invalid arguments");

@@ -30,13 +30,13 @@ class Node {
 
 class InternalNode : public Node {
 	public:
-		const int splittingFeatureIndex;
+		const unsigned int splittingFeatureIndex;
 		const double splittingThreshold;
 		std::shared_ptr<Node> leftNode;
 		std::shared_ptr<Node> rightNode;
 
 		InternalNode(
-				int splittingFeatureIndex,
+				unsigned int splittingFeatureIndex,
 				double splittingThreshold,
 				std::shared_ptr<Node> leftNode,
 				std::shared_ptr<Node> rightNode
@@ -118,11 +118,12 @@ class Leaf : public Node {
 
 class Tree {
 	private:
-		std::shared_ptr<InternalNode> root;
 		std::vector<double> leafScores;
 		int leafsCount;
 		int _treeIndex = 0;
 	public:
+		std::shared_ptr<InternalNode> root;
+
 		explicit Tree(std::shared_ptr<InternalNode> root) : root(std::move(root)) {
 			this->leafsCount = this->root->numberOfLeafs();
 			this->root->fillLeafScores(this->leafScores);
@@ -190,7 +191,8 @@ class Forest {
 			return score;
 		}
 
-		[[nodiscard]] std::vector<std::vector<std::shared_ptr<InternalNode>>> getNodesByFeature(int numberOfFeatures) const {
+		[[nodiscard]] std::vector<std::vector<std::shared_ptr<InternalNode>>>
+		getNodesByFeature(int numberOfFeatures) const {
 			auto nodes = std::vector<std::vector<std::shared_ptr<InternalNode>>>();
 			for (int i = 0; i < numberOfFeatures; i++) {
 				nodes.emplace_back();

@@ -2,7 +2,7 @@
 #include <random>
 #include <chrono>
 #include "../Tree.h"
-#include "../OldFeaturesMap.h"
+#include "../RapidScorer.h"
 
 double dRand(double min, double max) {
 	double d = (double) rand() / RAND_MAX;
@@ -64,7 +64,7 @@ int main() {
 	}
 	std::cout << "Docs" << std::endl;
 
-	auto features = FeaturesMap(forest, N_FEATURES);
+	auto features = RapidScorer(forest);
 	std::cout << "Created feature map" << std::endl;
 
 	//Performing a basic test to ensure that there are no errors
