@@ -3,7 +3,19 @@ project(forest_tree_evaluator)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(forest_tree_evaluator json.hpp Tree.cpp Tree.h Epitome.cpp Epitome.h ResultMask.cpp ResultMask.h config.h EqNode.h RapidScorer.h main.cpp)
+add_executable(forest_tree_evaluator
+        src/json.hpp
+        src/Tree.cpp
+        src/Tree.h
+        src/Epitome.cpp
+        src/Epitome.h
+        src/ResultMask.cpp
+        src/ResultMask.h
+        src/config.h
+        src/EqNode.h
+        src/RapidScorer.h
+        src/main.cpp
+)
 
 
 find_package(OpenMP)

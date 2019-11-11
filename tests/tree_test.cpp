@@ -1,8 +1,8 @@
 #include <memory>
 #include <random>
 #include <chrono>
-#include "../Tree.h"
-#include "../RapidScorer.h"
+#include "../src/Tree.h"
+#include "../src/RapidScorer.h"
 
 double dRand(double min, double max) {
 	double d = (double) rand() / RAND_MAX;

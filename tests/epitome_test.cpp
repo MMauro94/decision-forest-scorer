@@ -1,5 +1,5 @@
 
-#include "../Epitome.h"
+#include "../src/Epitome.h"
 
 void check(const std::string& expected, int leftOnes, int middleZeroes) {
     Epitome toTest(leftOnes, middleZeroes);
