@@ -23,7 +23,7 @@ class ResultMask {
 	public:
 
 		explicit ResultMask(std::shared_ptr<Forest> forest) : _forest(std::move(forest)), masks(this->_forest->trees.size()) {
-#pragma omp parallel for if(PARALLEL_INIT) default(none)
+#pragma omp parallel for if(PARALLEL_MASK_INIT) default(none)
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
 				auto &t = this->_forest->trees[i];
 				int maskByteSize = t.numberOfLeafs() / 8 + 1;

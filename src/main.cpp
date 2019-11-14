@@ -31,7 +31,7 @@ Tree parseTree(nlohmann::json json) {
 	return Tree(std::dynamic_pointer_cast<InternalNode>(root));
 }
 
-std::shared_ptr<Forest> parseForest(const int fold) {
+std::vector<std::shared_ptr<Forest>> parseForests(const int fold) {
 	std::ifstream file(DOCUMENTS_ROOT + "/Fold" + std::to_string(fold) + "/model.json");
 	nlohmann::json json;
 	file >> json;
@@ -41,7 +41,7 @@ std::shared_ptr<Forest> parseForest(const int fold) {
 	for (auto &tree : json["tree_info"]) {
 		trees.push_back(parseTree(tree));
 	}
-	return std::make_shared<Forest>(trees);
+	return Forest::buildForests(trees);
 }
 
 std::vector<double> parseDocumentLine(const std::string &line) {
@@ -86,17 +86,20 @@ std::vector<double> parseScores(const int fold) {
 }
 
 
-void testFold(const int fold) {
-	auto f = parseForest(fold);
+long testFold(const int fold) {
+	auto f = parseForests(fold);
 
 	const auto &doc = parseDocuments(fold);
 	const auto &testScores = parseScores(fold);
 	assert(doc.size() == testScores.size());
 
-	RapidScorer scorer(f);
+
+	RapidScorers scorer(f);
+
+	auto t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0, max = doc.size(); i < max; i++) {
-		//const double score = scorer.score(doc[i]);
-		const double score = f->score(doc[i]);
+		const double score = scorer.score(doc[i]);
+		//const double score = f->score(doc[i]);
 		const double testScore = testScores[i];
 
 		if (std::abs(score - testScore) > TEST_EQUALITY_THRESHOLD) {
@@ -104,12 +107,18 @@ void testFold(const int fold) {
 			exit(1);
 		}
 	}
+	auto t2 = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+
+	std::cout << "Fold " << fold << " took " << duration / 1000000000.0 << "s" << std::endl;
+	return duration;
 }
 
 int main() {
+	unsigned long tot = 0;
 	for (int i = 1; i <= 4; i++) {
-		testFold(i);
+		tot += testFold(i);
 	}
-
+	std::cout << "All took " << tot / 1000000000.0 << "s" << std::endl;
 	return 0;
 }

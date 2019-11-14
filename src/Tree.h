@@ -4,6 +4,8 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <thread>
+#include <algorithm>
 
 class InternalNode;
 
@@ -173,6 +175,19 @@ class Forest {
 			for (int index = 0, size = trees.size(); index < size; ++index) {
 				trees[index].setTreeIndex(index);
 			}
+		}
+
+		static std::vector<std::shared_ptr<Forest>> buildForests(std::vector<Tree> &trees) {
+			unsigned int threads = std::max(2u, std::thread::hardware_concurrency());
+			std::vector<std::vector<Tree>> almostForests(threads);
+			for (unsigned long i = 0; i < trees.size(); i++) {
+				almostForests[i % threads].push_back(trees[i]);
+			}
+			std::vector<std::shared_ptr<Forest>> ret;
+			for (auto &f : almostForests) {
+				ret.push_back(std::make_shared<Forest>(f));
+			}
+			return ret;
 		}
 
 		[[nodiscard]] int maximumNumberOfLeafs() const {
