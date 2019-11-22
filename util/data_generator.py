@@ -9,8 +9,8 @@ import sys
 import re
 
 
-NUM_OF_TREES = 10
-NUM_OF_LEAFS = 4
+NUM_OF_TREES = 10000
+NUM_OF_LEAFS = 400
 
 
 fold_path = sys.argv[1]

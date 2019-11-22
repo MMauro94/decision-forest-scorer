@@ -5,7 +5,6 @@
 #ifndef FOREST_TREE_EVALUATOR_EPITOME_H
 #define FOREST_TREE_EVALUATOR_EPITOME_H
 
-#include <stdint.h>
 #include <stdexcept>
 #include <iostream>
 #include <bitset>
