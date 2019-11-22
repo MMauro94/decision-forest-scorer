@@ -7,7 +7,6 @@
 
 
 #include <vector>
-#include <stdint-gcc.h>
 #include <mutex>
 #include <deque>
 #include <atomic>
