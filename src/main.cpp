@@ -1,7 +1,8 @@
 #include <iostream>
-#include "json.hpp"
 #include "Tree.h"
 #include "RapidScorer.h"
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -9,38 +10,57 @@
 #define TEST_EQUALITY_THRESHOLD 0.00001
 std::string DOCUMENTS_ROOT = "documents";
 
-std::shared_ptr<Node> parseNode(nlohmann::json json) {
-	if (json.contains("split_feature")) {
+template <class GheSboro>
+std::shared_ptr<Node> parseNode(const GheSboro &json) {
+	if (json.HasMember("split_feature")) {
 		//Internal
 		assert(json["decision_type"] == "<=");
 		assert(json["default_left"] == true);
 		return std::make_shared<InternalNode>(
-				json["split_feature"],
-				json["threshold"],
+				json["split_feature"].GetInt(),
+				json["threshold"].GetDouble(),
 				parseNode(json["left_child"]),
 				parseNode(json["right_child"])
 		);
 	} else {
 		//Leaf
-		return std::make_shared<Leaf>(json["leaf_value"]);
+		return std::make_shared<Leaf>(json["leaf_value"].GetDouble());
 	}
 }
 
-Tree parseTree(nlohmann::json json) {
-	auto root = parseNode(json["tree_structure"]);
+template <class GheSboro>
+Tree parseTree(const GheSboro &json) {
+	auto root = parseNode(json["tree_structure"].GetObject());
 	return Tree(std::dynamic_pointer_cast<InternalNode>(root));
 }
 
 std::vector<std::shared_ptr<Forest>> parseForests(const int fold) {
-	std::ifstream file(DOCUMENTS_ROOT + "/Fold" + std::to_string(fold) + "/model.json");
-	nlohmann::json json;
-	file >> json;
-	file.close();
+	auto t1 = std::chrono::high_resolution_clock::now();
+
+	std::cout << "Starting parsing model.json" << std::endl;
+	auto filename = DOCUMENTS_ROOT + "/Fold" + std::to_string(fold) + "/model.json";
+	FILE *fp = std::fopen(filename.c_str(), "rb"); // non-Windows use "r"
+
+	char readBuffer[65536];
+	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+	rapidjson::Document json;
+	json.ParseStream(is);
+	fclose(fp);
+
+
+	auto t2 = std::chrono::high_resolution_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+	std::cout << "model.json parsed, parsing trees, took " << duration / 1000000000.0 << "s" << std::endl;
 
 	std::vector<Tree> trees;
-	for (auto &tree : json["tree_info"]) {
+	for (auto &tree : json["tree_info"].GetArray()) {
 		trees.push_back(parseTree(tree));
 	}
+	auto t3 = std::chrono::high_resolution_clock::now();
+	duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t3 - t2).count();
+	std::cout << "Trees parsed, took " << duration / 1000000000.0 << "s" << std::endl;
+
 	return Forest::buildForests(trees);
 }
 
@@ -95,12 +115,20 @@ long testFold(const int fold) {
 
 
 	RapidScorers scorer(f);
+	std::cout << "Documents parsed, starting scoring..." << std::endl;
 
 	auto t1 = std::chrono::high_resolution_clock::now();
 	for (int i = 0, max = doc.size(); i < max; i++) {
 		const double score = scorer.score(doc[i]);
 		//const double score = f->score(doc[i]);
 		const double testScore = testScores[i];
+
+		if (i % 1000 == 0) {
+			auto t2 = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+
+			std::cout << "Done " << i << " documents in " << duration / 1000000000.0 << "s" << std::endl;
+		}
 
 		if (std::abs(score - testScore) > TEST_EQUALITY_THRESHOLD) {
 			std::cout << "Test failed: Mismatch: expecting " << testScore << ", found " << score << std::endl;
@@ -116,9 +144,29 @@ long testFold(const int fold) {
 
 int main() {
 	unsigned long tot = 0;
-	for (int i = 1; i <= 4; i++) {
+	for (int i = 1; i <= 1; i++) {
 		tot += testFold(i);
 	}
 	std::cout << "All took " << tot / 1000000000.0 << "s" << std::endl;
 	return 0;
 }
+/*
+int main() {
+	auto t1 = std::chrono::high_resolution_clock::now();
+
+	std::cout << "Starting parsing model.json" << std::endl;
+	auto filename = DOCUMENTS_ROOT + "/Fold" + std::to_string(2) + "/model.json";
+	FILE* fp = std::fopen(filename.c_str(), "rb"); // non-Windows use "r"
+
+	char readBuffer[65536];
+	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+	rapidjson::Document json;
+	json.ParseStream(is);
+	fclose(fp);
+
+	for(auto &c : json["tree_info"].GetArray()) {
+		auto &o = c["tree_structure"];
+		std::cout << "no";
+	}
+}*/
