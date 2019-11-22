@@ -37,7 +37,7 @@ for i in range(1, 6):
         "objective": "lambdarank",  # what to optimize during training
         "max_position": 10,  # threshold used in optimizing lamdarank (NDCG)
         "learning_rate": 0.1,
-        "num_leaves": NUM_OF_LEAFS,
+        "num_leaves": NUM_OF_LEAVES,
         "min_data_in_leaf": 5,
         "metric": ["ndcg"],  # what to use/print for evaluation
         "ndcg_eval_at": 10,
