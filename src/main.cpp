@@ -10,7 +10,7 @@
 #define TEST_EQUALITY_THRESHOLD 0.00001
 std::string DOCUMENTS_ROOT = "documents";
 
-template <class GheSboro>
+template<class GheSboro>
 std::shared_ptr<Node> parseNode(const GheSboro &json) {
 	if (json.HasMember("split_feature")) {
 		//Internal
@@ -28,7 +28,7 @@ std::shared_ptr<Node> parseNode(const GheSboro &json) {
 	}
 }
 
-template <class GheSboro>
+template<class GheSboro>
 Tree parseTree(const GheSboro &json) {
 	auto root = parseNode(json["tree_structure"].GetObject());
 	return Tree(std::dynamic_pointer_cast<InternalNode>(root));
@@ -118,20 +118,22 @@ long testFold(const int fold) {
 	std::cout << "Documents parsed, starting scoring..." << std::endl;
 
 	auto t1 = std::chrono::high_resolution_clock::now();
-	for (int i = 0, max = doc.size(); i < max; i++) {
+	int max = 10000;
+#pragma omp parallel for if(PARALLEL_DOCUMENTS) default(none), shared(max), shared(scorer), shared(doc), shared(testScores)
+	for (int i = 0; i < max; i++) {
 		const double score = scorer.score(doc[i]);
 		//const double score = f->score(doc[i]);
 		const double testScore = testScores[i];
 
-		if (i % 1000 == 0) {
+		/*if (i % 1000 == 0) {
 			auto t2 = std::chrono::high_resolution_clock::now();
 			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
 			std::cout << "Done " << i << " documents in " << duration / 1000000000.0 << "s" << std::endl;
-		}
+		}*/
 
 		if (std::abs(score - testScore) > TEST_EQUALITY_THRESHOLD) {
-			std::cout << "Test failed: Mismatch: expecting " << testScore << ", found " << score << std::endl;
+			//std::cout << "Test failed: Mismatch: expecting " << testScore << ", found " << score << std::endl;
 			exit(1);
 		}
 	}

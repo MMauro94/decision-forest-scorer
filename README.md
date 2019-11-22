@@ -1,1 +1,11 @@
 # forest-tree-evaluator
+
+##initial implementation
+###parallelizing the forest
+Single: 7,008,971 ns
+
+###parallelizing feature
+Single: 92,123,575 ns
+
+###parallelizing documents
+Single: 6,364,3‬00 ns
