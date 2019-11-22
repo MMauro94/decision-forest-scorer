@@ -7,6 +7,7 @@
 #define PARALLEL_FORESTS false
 #define PARALLEL_DOCUMENTS true
 #define PARALLEL_MASK_INIT false
+#define LINEARIZE_EQ_NODES true
 
 #if PARALLEL_MASK
 typedef std::vector<std::atomic_uint8_t> MaskType;
