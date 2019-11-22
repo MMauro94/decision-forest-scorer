@@ -9,3 +9,7 @@ Single: 92,123,575 ns
 
 ###parallelizing documents
 Single: 6,364,3‬00 ns
+Single -O3: 1,573,000 ns
+
+## linearized eqnodes
+Single -O3: 1,565,840 ns
