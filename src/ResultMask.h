@@ -44,14 +44,14 @@ class ResultMask {
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
 				auto leafIndex = firstOne(this->masks[i]);
 				auto &tree = this->_forest->trees[i];
-				score += tree.scoreByLeafIndex(leafIndex);
+				score += tree.scoreByLeafIndex(leafIndex);//TODO: capire se c'è un modo meglio di ottenere questo score
 			}
 			return score;
 		}
 
 	private:
 
-		static unsigned int firstOne(const MaskType &vector) {
+		static unsigned int firstOne(const MaskType &vector) {//TODO: usare AVX, c'è un'istruzione
 			int ret = 0;
 			int i = 0;
 			while (vector[i] == 0) {

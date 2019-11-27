@@ -10,7 +10,7 @@
 #define LINEARIZE_EQ_NODES true
 
 #if PARALLEL_MASK
-typedef std::vector<std::atomic_uint8_t> MaskType;
+typedef std::vector<std::atomic_uint8_t> MaskType;//TODO: provare ad usare istruzione al posto di atomic
 #else
-typedef std::vector<std::uint8_t> MaskType;
+typedef std::vector<std::uint8_t> MaskType;//TODO: non usare vector
 #endif

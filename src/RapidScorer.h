@@ -136,6 +136,7 @@ class LinearizedRapidScorer {
 
 				unsigned int epitomesToEpitome = this->offsets[featureIndex];
 
+				//TODO: binary search
 				for (; epitomesToEpitome < end &&
 					   value > this->featureThresholds[epitomesToEpitome]; epitomesToEpitome++);
 
@@ -151,7 +152,7 @@ class LinearizedRapidScorer {
 #if LINEARIZE_EQ_NODES
 typedef LinearizedRapidScorer RapidScorer;
 #else
-typedef EqNodesRapidScorer RapidScorer;
+ftypedef EqNodesRapidScorer RapidScorer;
 #endif
 
 class RapidScorers {
