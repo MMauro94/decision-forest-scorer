@@ -76,7 +76,7 @@ std::vector<double> parseDocumentLine(const std::string &line) {
 	double value;
 	while (std::getline(ss, token, ' ')) {
 		if (sscanf(token.c_str(), "%d:%lf", &featureId, &value) == 2) {
-			ret.push_back(value); //TODO use feature ID
+			ret.push_back(value);
 			assert(featureId == ret.size());
 		}
 	}
@@ -109,13 +109,18 @@ std::vector<double> parseScores(const int fold) {
 long testFold(const int fold) {
 	auto f = parseForests(fold);
 
+	std::cout << "Parsing documents....";
 	const auto &doc = parseDocuments(fold);
+	std::cout << "OK" << std::endl;
+
+	std::cout << "Parsing scores...";
 	const auto &testScores = parseScores(fold);
 	assert(doc.size() == testScores.size());
+	std::cout << "OK" << std::endl;
 
 
 	RapidScorers scorer(f);
-	std::cout << "Documents parsed, starting scoring..." << std::endl;
+	std::cout << "Starting scoring..." << std::endl;
 
 	auto t1 = std::chrono::high_resolution_clock::now();
 	int max = 10000;

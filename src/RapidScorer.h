@@ -134,11 +134,12 @@ class LinearizedRapidScorer {
 					end = this->featureThresholds.size();
 				}
 
-				unsigned int epitomesToEpitome = this->offsets[featureIndex];
 
-				//TODO: binary search
-				for (; epitomesToEpitome < end &&
-					   value > this->featureThresholds[epitomesToEpitome]; epitomesToEpitome++);
+				unsigned long epitomesToEpitome = std::lower_bound(
+						this->featureThresholds.begin() + this->offsets[featureIndex],
+						this->featureThresholds.begin() + end,
+						value
+				) - this->featureThresholds.begin();
 
 				for (unsigned long j = this->offsets[featureIndex]; j < epitomesToEpitome; j++) {
 					result.applyMask(this->epitomes[j], this->treeIndexes[j]);
@@ -148,7 +149,6 @@ class LinearizedRapidScorer {
 			return result.computeScore();
 		}
 };
-
 #if LINEARIZE_EQ_NODES
 typedef LinearizedRapidScorer RapidScorer;
 #else
