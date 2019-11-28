@@ -14,8 +14,10 @@ Single -O3: 1,573,000 ns
 ## linearized eqnodes
 Single -O3: 1,565,840 ns
 
-#linearized eqnodes + binary search
+### binary search
 Single -O3: 1,431,740 ns
 
+### binary search + linearized mask
+Single -O3:
 
 // TODO: misuarare sbilanciamento feature

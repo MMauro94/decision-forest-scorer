@@ -61,7 +61,11 @@ std::vector<std::shared_ptr<Forest>> parseForests(const int fold) {
 	duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t3 - t2).count();
 	std::cout << "Trees parsed, took " << duration / 1000000000.0 << "s" << std::endl;
 
-	return Forest::buildForests(trees);
+	std::cout << "Building forests...";
+	const auto &vector = Forest::buildForests(trees);
+	std::cout << "OK" << std::endl;
+
+	return vector;
 }
 
 std::vector<double> parseDocumentLine(const std::string &line) {
@@ -83,23 +87,23 @@ std::vector<double> parseDocumentLine(const std::string &line) {
 	return ret;
 }
 
-std::vector<std::vector<double>> parseDocuments(const int fold) {
+std::vector<std::vector<double>> parseDocuments(const int fold, const int max = -1) {
 	std::ifstream file;
 	file.open(DOCUMENTS_ROOT + "/Fold" + std::to_string(fold) + "/test.txt");
 	std::string s;
 	std::vector<std::vector<double>> ret;
-	while (std::getline(file, s)) {
+	while (std::getline(file, s) && (max == -1 || ret.size() < max)) {
 		ret.push_back(parseDocumentLine(s));
 	}
 	return ret;
 }
 
-std::vector<double> parseScores(const int fold) {
+std::vector<double> parseScores(const int fold, const int max = -1) {
 	std::ifstream file;
 	file.open(DOCUMENTS_ROOT + "/Fold" + std::to_string(fold) + "/test_scores.txt");
 	std::string s;
 	std::vector<double> ret;
-	while (std::getline(file, s)) {
+	while (std::getline(file, s) && (max == -1 || ret.size() < max)) {
 		ret.push_back(std::stod(s));
 	}
 	return ret;
@@ -107,14 +111,17 @@ std::vector<double> parseScores(const int fold) {
 
 
 long testFold(const int fold) {
+	const int max = 10000;
+
 	auto f = parseForests(fold);
 
-	std::cout << "Parsing documents....";
-	const auto &doc = parseDocuments(fold);
+	std::cout << "Parsing documents...";
+	const auto &doc = parseDocuments(fold, max);
 	std::cout << "OK" << std::endl;
 
 	std::cout << "Parsing scores...";
-	const auto &testScores = parseScores(fold);
+	const auto &testScores = parseScores(fold, max);
+
 	assert(doc.size() == testScores.size());
 	std::cout << "OK" << std::endl;
 
@@ -123,8 +130,7 @@ long testFold(const int fold) {
 	std::cout << "Starting scoring..." << std::endl;
 
 	auto t1 = std::chrono::high_resolution_clock::now();
-	int max = 10000;
-#pragma omp parallel for if(PARALLEL_DOCUMENTS) default(none), shared(max), shared(scorer), shared(doc), shared(testScores)
+#pragma omp parallel for if(PARALLEL_DOCUMENTS) default(none), shared(scorer), shared(doc), shared(testScores), shared(std::cout)
 	for (int i = 0; i < max; i++) {
 		const double score = scorer.score(doc[i]);
 		//const double score = f->score(doc[i]);
@@ -138,7 +144,8 @@ long testFold(const int fold) {
 		}*/
 
 		if (std::abs(score - testScore) > TEST_EQUALITY_THRESHOLD) {
-			//std::cout << "Test failed: Mismatch: expecting " << testScore << ", found " << score << std::endl;
+			std::string out = "Test failed: Mismatch: expecting " + std::to_string(testScore) + ", found " + std::to_string(score) + "\n";
+			std::cout << out;
 			exit(1);
 		}
 	}
@@ -150,6 +157,8 @@ long testFold(const int fold) {
 }
 
 int main() {
+	std::cout.setf(std::ios::unitbuf);
+
 	unsigned long tot = 0;
 	for (int i = 1; i <= 1; i++) {
 		tot += testFold(i);

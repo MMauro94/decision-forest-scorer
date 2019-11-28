@@ -17,7 +17,7 @@ class EqNodesRapidScorer {
 		std::vector<unsigned int> offsets;
 
 		void addNodes(const std::shared_ptr<InternalNode> &node) {
-			eqNodes.emplace_back(node, Epitome(this->forest->trees[node->getTreeIndex()].countLeafsUntil(node),
+			eqNodes.emplace_back(node, Epitome<BLOCK>(this->forest->trees[node->getTreeIndex()].countLeafsUntil(node),
 											   node->leftNode->numberOfLeafs()));
 
 			auto leftAsInternalNode = std::dynamic_pointer_cast<InternalNode>(node->leftNode);
@@ -73,7 +73,7 @@ class LinearizedRapidScorer {
 		std::shared_ptr<Forest> forest;
 		std::vector<double> featureThresholds;
 		std::vector<unsigned int> treeIndexes;
-		std::vector<Epitome> epitomes;
+		std::vector<Epitome<BLOCK>> epitomes;
 		std::vector<unsigned int> offsets;
 
 		static void

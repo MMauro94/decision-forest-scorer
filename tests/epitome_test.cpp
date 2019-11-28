@@ -1,26 +1,55 @@
 
+
+#include <cxxabi.h>
 #include "../src/Epitome.h"
 
-void check(const std::string& expected, int leftOnes, int middleZeroes) {
-    Epitome toTest(leftOnes, middleZeroes);
-    auto actual = toTest.toString(true);
-    if(actual != expected) {
-        throw std::runtime_error("Error with leftOnes=" + std::to_string(leftOnes) + " and middleZeroes=" + std::to_string(middleZeroes) + "! Expected: " + expected + ", actual: " + actual);
-    }
+template<typename Block>
+std::string expected(int leftOnes, int middleZeroes) {
+	std::string s;
+	for (unsigned long i = 0; i < leftOnes; i++) {
+		s += "1";
+	}
+	for (unsigned long i = 0; i < middleZeroes; i++) {
+		s += "0";
+	}
+	while (s.length() % (sizeof(Block) * 8) != 0) {
+		s += "1";
+	}
+	return s;
+}
+
+template<typename Block>
+void check(int leftOnes, int middleZeroes) {
+	Epitome<Block> toTest(leftOnes, middleZeroes);
+	auto actual = toTest.toString(false);
+
+	auto exp = expected<Block>(leftOnes, middleZeroes);
+	if (actual != exp) {
+		throw std::runtime_error("Error with leftOnes=" + std::to_string(leftOnes) + " and middleZeroes=" +
+								 std::to_string(middleZeroes) + "! Expected: " + exp + ", actual: " + actual);
+	}
+}
+
+template<typename Block>
+void checkMultiple() {
+	check<Block>(3, 2);
+	check<Block>(10, 7);
+	check<Block>(10, 6);
+	check<Block>(8, 8);
+	check<Block>(8, 7);
+	check<Block>(9, 6);
+	check<Block>(7, 8);
+	check<Block>(0, 1);
+	check<Block>(0, 10);
+	check<Block>(0, 8);
+	check<Block>(0, 16);
+	check<Block>(0, 3);
 }
 
 int main() {
-    check("11100111", 3, 2);
-    check("11111111 11000000 01111111", 10, 7);
-    check("11111111 11000000", 10, 6);
-    check("11111111 00000000", 8, 8);
-    check("11111111 00000001", 8, 7);
-    check("11111111 10000001", 9, 6);
-    check("11111110 00000001", 7, 8);
-    check("01111111", 0, 1);
-    check("00000000 00111111", 0, 10);
-    check("00000000", 0, 8);
-    check("00000000 00000000", 0, 16);
-    check("00011111", 0, 3);
+	checkMultiple<std::uint8_t>();
+	checkMultiple<std::uint16_t>();
+	checkMultiple<std::uint32_t>();
+	checkMultiple<std::uint64_t>();
 }
 

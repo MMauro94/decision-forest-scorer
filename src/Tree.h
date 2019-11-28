@@ -15,7 +15,7 @@ class Node {
 	public:
 		[[nodiscard]] virtual double score(const std::vector<double> &element) const = 0;
 
-		[[nodiscard]] virtual int numberOfLeafs() const = 0;
+		[[nodiscard]] virtual unsigned int numberOfLeafs() const = 0;
 
 		[[nodiscard]] int getTreeIndex() const {
 			return this->_treeIndex;
@@ -53,7 +53,7 @@ class InternalNode : public Node {
 			}
 		}
 
-		[[nodiscard]] int numberOfLeafs() const override {
+		[[nodiscard]] unsigned int numberOfLeafs() const override {
 			return this->leftNode->numberOfLeafs() + this->rightNode->numberOfLeafs();
 		}
 
@@ -105,7 +105,7 @@ class Leaf : public Node {
 			return this->_score;
 		}
 
-		[[nodiscard]] int numberOfLeafs() const override {
+		[[nodiscard]] unsigned int numberOfLeafs() const override {
 			return 1;
 		}
 
@@ -121,8 +121,8 @@ class Leaf : public Node {
 class Tree {
 	private:
 		std::vector<double> leafScores;
-		int leafsCount;
-		int _treeIndex = 0;
+		unsigned int leafsCount;
+		unsigned int _treeIndex = 0;
 	public:
 		std::shared_ptr<InternalNode> root;
 
@@ -135,7 +135,7 @@ class Tree {
 			return this->root->score(element);
 		}
 
-		[[nodiscard]] int numberOfLeafs() const {
+		[[nodiscard]] unsigned int numberOfLeafs() const {
 			return this->leafsCount;
 		}
 
@@ -144,11 +144,11 @@ class Tree {
 			this->root->fillNodesByFeature(nodes);
 		}
 
-		[[nodiscard]] int getTreeIndex() const {
+		[[nodiscard]] unsigned int getTreeIndex() const {
 			return this->_treeIndex;
 		}
 
-		void setTreeIndex(int treeIndex) {
+		void setTreeIndex(unsigned int treeIndex) {
 			this->_treeIndex = treeIndex;
 			this->root->setTreeIndex(treeIndex);
 		}
@@ -162,23 +162,38 @@ class Tree {
 			return ret;
 		}
 
-		[[nodiscard]] double scoreByLeafIndex(unsigned int leafIndex) const {
+		[[nodiscard]] double scoreByLeafIndex(unsigned long leafIndex) const {
 			return this->leafScores[leafIndex];
 		}
 };
 
 class Forest {
+	private:
+		unsigned int _maximumNumberOfLeafs;
+
+		void computeMaximumNumberOfLeafs() {
+			this->_maximumNumberOfLeafs = 0u;
+			for (auto &tree : this->trees) {
+				this->_maximumNumberOfLeafs = std::max(this->_maximumNumberOfLeafs, tree.numberOfLeafs());
+			}
+		}
+
 	public:
 		std::vector<Tree> trees;
 
 		explicit Forest(std::vector<Tree> &trees) : trees(trees) {
-			for (int index = 0, size = trees.size(); index < size; ++index) {
+			for (unsigned int index = 0, size = trees.size(); index < size; ++index) {
 				trees[index].setTreeIndex(index);
 			}
+			this->computeMaximumNumberOfLeafs();
 		}
 
 		static std::vector<std::shared_ptr<Forest>> buildForests(std::vector<Tree> &trees) {
+#if PARALLEL_FORESTS
 			unsigned int threads = std::max(2u, std::thread::hardware_concurrency());
+#else
+			unsigned int threads = 1;
+#endif
 			std::vector<std::vector<Tree>> almostForests(threads);
 			for (unsigned long i = 0; i < trees.size(); i++) {
 				almostForests[i % threads].push_back(trees[i]);
@@ -190,12 +205,8 @@ class Forest {
 			return ret;
 		}
 
-		[[nodiscard]] int maximumNumberOfLeafs() const {
-			int max = 0;
-			for (auto &tree : this->trees) {
-				max = std::max(max, tree.numberOfLeafs());
-			}
-			return max;
+		[[nodiscard]] unsigned int maximumNumberOfLeafs() const {
+			return this->_maximumNumberOfLeafs;
 		}
 
 		[[nodiscard]] double score(const std::vector<double> &element) const {

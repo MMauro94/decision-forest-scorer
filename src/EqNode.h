@@ -14,13 +14,13 @@ class EqNode {
 		unsigned int featureIndex;
 		double featureThreshold;
 		unsigned int treeIndex;
-		Epitome epitome;
+		Epitome<BLOCK> epitome;
 
-		EqNode(const std::shared_ptr<InternalNode> &node, const Epitome &epitome) : featureIndex(node->splittingFeatureIndex),
-																			  featureThreshold(
+		EqNode(const std::shared_ptr<InternalNode> &node, const Epitome<BLOCK> &epitome) : featureIndex(node->splittingFeatureIndex),
+																						   featureThreshold(
 																					  node->splittingThreshold),
-																			  treeIndex(node->getTreeIndex()),
-																			  epitome(epitome) {
+																						   treeIndex(node->getTreeIndex()),
+																						   epitome(epitome) {
 		}
 
 		bool operator<(const EqNode &rhs) const {

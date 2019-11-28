@@ -17,6 +17,7 @@ add_executable(forest_tree_evaluator
         src/EqNode.h
         src/RapidScorer.h
         src/main.cpp
+        #tests/epitome_test.cpp
         ${json_files}
         )
 

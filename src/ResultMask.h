@@ -10,6 +10,7 @@
 #include <mutex>
 #include <deque>
 #include <atomic>
+#include <strings.h>
 #include "config.h"
 #include "Tree.h"
 #include "Epitome.h"
@@ -17,32 +18,25 @@
 class ResultMask {
 	private:
 		std::shared_ptr<Forest> _forest;
+		unsigned int masksPerTree;
 		std::vector<MaskType> masks;
 
 	public:
 
-		explicit ResultMask(std::shared_ptr<Forest> forest) : _forest(std::move(forest)), masks(this->_forest->trees.size()) {
-#pragma omp parallel for if(PARALLEL_MASK_INIT) default(none)
-			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
-				auto &t = this->_forest->trees[i];
-				int maskByteSize = t.numberOfLeafs() / 8 + 1;
-				auto mask = MaskType(maskByteSize);
-				for (int j = 0; j < maskByteSize; j++) {
-					mask[j] = 255;
-				}
-				this->masks[i].swap(mask);
-			}
-		}
+		explicit ResultMask(std::shared_ptr<Forest> forest) :
+				_forest(std::move(forest)),
+				masksPerTree(this->_forest->maximumNumberOfLeafs() / MASK_SIZE + 1),
+				masks(this->_forest->trees.size() * this->masksPerTree, -1) {}
 
-		void applyMask(const Epitome &mask, const unsigned int treeIndex) {
-			mask.performAnd(this->masks[treeIndex]);
+		void applyMask(const Epitome<BLOCK> &epitome, const unsigned int treeIndex) {
+			epitome.performAnd(this->masks, treeIndex, this->masksPerTree);
 		}
 
 		[[nodiscard]] double computeScore() const {
 			double score = 0.0;
 #pragma omp parallel for if(PARALLEL_SCORE) default(none) reduction(+:score)
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
-				auto leafIndex = firstOne(this->masks[i]);
+				auto leafIndex = this->firstOne(i);
 				auto &tree = this->_forest->trees[i];
 				score += tree.scoreByLeafIndex(leafIndex);//TODO: capire se c'è un modo meglio di ottenere questo score
 			}
@@ -51,19 +45,22 @@ class ResultMask {
 
 	private:
 
-		static unsigned int firstOne(const MaskType &vector) {//TODO: usare AVX, c'è un'istruzione
-			int ret = 0;
-			int i = 0;
-			while (vector[i] == 0) {
+		[[nodiscard]] unsigned long firstOne(unsigned long treeIndex) const {
+			unsigned long mult = this->masksPerTree * treeIndex;
+
+			unsigned long i = 0;
+			while (this->masks[mult + i] == 0) {
 				i++;
-				ret += 8;
 			}
-			int j = 0;
-			while ((vector[i] & (1u << (8u - j - 1u))) == 0) {
-				j++;
-				ret++;
+			auto mask = this->masks[mult + i];
+
+
+			unsigned int j = 0;
+			for (; j < MASK_SIZE; j++) {
+				if ((mask >> (MASK_SIZE - 1 - j)) % 2 == 1) break;
 			}
-			return ret;
+
+			return i * MASK_SIZE + j;
 		}
 
 };

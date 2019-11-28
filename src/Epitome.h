@@ -13,12 +13,15 @@
 #include <deque>
 #include "config.h"
 
+template<typename Block>
 class Epitome {
 	private:
-		uint8_t firstByte;
-		uint8_t firstBytePosition;
-		uint8_t lastByte;
-		uint8_t lastBytePosition;
+		Block firstBlock;
+		uint8_t firstBlockPosition;
+		Block lastBlock;
+		uint8_t lastBlockPosition;
+
+		static constexpr inline auto Bits = sizeof(Block) * 8;
 
 	public:
 
@@ -28,32 +31,36 @@ class Epitome {
 			if (leftOnes < 0 || middleZeroes <= 0) {
 				throw std::invalid_argument("invalid arguments");
 			}
-			this->firstByte = 0;
-			for (unsigned int i = 0; i < leftOnes % 8; i++) {
-				this->firstByte |= 1u << (8u - i - 1);
-			}
-			this->firstBytePosition = leftOnes / 8;
+			Block one = 1u;
 
-			this->lastByte = 0;
-			if ((middleZeroes + leftOnes) % 8 > 0) {
-				for (unsigned int i = (middleZeroes + leftOnes) % 8; i < 8; i++) {
-					this->lastByte |= 1u << (8u - i - 1);
+			this->firstBlock = 0;
+			for (unsigned int i = 0; i < leftOnes % Bits; i++) {
+				this->firstBlock |= one << (Bits - i - one);
+			}
+			this->firstBlockPosition = leftOnes / Bits;
+
+			this->lastBlock = 0;
+			if ((middleZeroes + leftOnes) % Bits > 0) {
+				for (unsigned int i = (middleZeroes + leftOnes) % Bits; i < Bits; i++) {
+					this->lastBlock |= one << (Bits - i - one);
 				}
 			}
-			this->lastBytePosition = (leftOnes + middleZeroes - 1) / 8;
+			this->lastBlockPosition = (leftOnes + middleZeroes - one) / Bits;
 
-			if (this->firstBytePosition == this->lastBytePosition) {
-				this->firstByte |= this->lastByte;
-				this->lastByte = this->firstByte;
+			if (this->firstBlockPosition == this->lastBlockPosition) {
+				this->firstBlock |= this->lastBlock;
+				this->lastBlock = this->firstBlock;
 			}
 		}
 
-		void performAnd(MaskType &vector) const {
-			vector[this->firstBytePosition] &= this->firstByte;
-			for (int i = this->firstBytePosition + 1; i < this->lastBytePosition; i++) {
-				vector[i] = 0;
+		void performAnd(std::vector<MaskType> &masks, unsigned int treeIndex, unsigned int masksPerTree) const {
+			unsigned int start = treeIndex * masksPerTree;
+
+			masks[start + this->firstBlockPosition] &= this->firstBlock;
+			for (int i = this->firstBlockPosition + 1 + start; i < this->lastBlockPosition + start; i++) {
+				masks[i] = 0;
 			}
-			vector[this->lastBytePosition] &= this->lastByte;
+			masks[start + this->lastBlockPosition] &= this->lastBlock;
 		}
 
 		friend std::ostream &operator<<(std::ostream &os, const Epitome &epitome) {
@@ -64,27 +71,31 @@ class Epitome {
 		[[nodiscard]] std::string toString(bool separateBytes) const {
 			std::string ret;
 
-			for (int i = 0; i < this->firstBytePosition; i++) {
-				ret += "11111111";
+			for (int i = 0; i < this->firstBlockPosition; i++) {
+				for (int j = 0; j < Bits; j++) {
+					ret += "1";
+				}
 				if (separateBytes) {
 					ret += " ";
 				}
 			}
-			if (this->lastBytePosition != this->firstBytePosition) {
-				std::bitset<8> fb(this->firstByte);
+			if (this->lastBlockPosition != this->firstBlockPosition) {
+				std::bitset<Bits> fb(this->firstBlock);
 				ret += fb.to_string();
 				if (separateBytes) {
 					ret += " ";
 				}
 			}
 
-			for (int i = this->firstBytePosition + 1; i < this->lastBytePosition; i++) {
-				ret += "00000000";
+			for (int i = this->firstBlockPosition + 1; i < this->lastBlockPosition; i++) {
+				for (int j = 0; j < Bits; j++) {
+					ret += "0";
+				}
 				if (separateBytes) {
 					ret += " ";
 				}
 			}
-			std::bitset<8> lb(this->lastByte);
+			std::bitset<Bits> lb(this->lastBlock);
 			ret += lb.to_string();
 			return ret;
 		}
