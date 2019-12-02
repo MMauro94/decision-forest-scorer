@@ -127,6 +127,7 @@ class LinearizedRapidScorer {
 #pragma omp parallel for if(PARALLEL_MASK) default(none) shared(result) shared(document) shared(max)
 			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
 				double value = document[featureIndex];
+				unsigned int start = this->offsets[featureIndex];
 				unsigned int end;
 				if (featureIndex + 1 < this->offsets.size()) {
 					end = this->offsets[featureIndex + 1];
@@ -136,12 +137,12 @@ class LinearizedRapidScorer {
 
 
 				unsigned long epitomesToEpitome = std::lower_bound(
-						this->featureThresholds.begin() + this->offsets[featureIndex],
+						this->featureThresholds.begin() + start,
 						this->featureThresholds.begin() + end,
 						value
 				) - this->featureThresholds.begin();
 
-				for (unsigned long j = this->offsets[featureIndex]; j < epitomesToEpitome; j++) {
+				for (unsigned long j = start; j < epitomesToEpitome; j++) {
 					result.applyMask(this->epitomes[j], this->treeIndexes[j]);
 				}
 			}
