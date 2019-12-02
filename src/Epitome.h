@@ -57,10 +57,13 @@ class Epitome {
 			unsigned int start = treeIndex * masksPerTree;
 
 			masks[start + this->firstBlockPosition] &= this->firstBlock;
-			for (int i = this->firstBlockPosition + 1 + start; i < this->lastBlockPosition + start; i++) {
-				masks[i] = 0;
+			if (this->firstBlockPosition != this->lastBlockPosition) {
+				unsigned int end = start + this->lastBlockPosition;
+				for (unsigned int i = start + this->firstBlockPosition + 1u; i < end; i++) {
+					masks[i] = 0;
+				}
+				masks[end] &= this->lastBlock;
 			}
-			masks[start + this->lastBlockPosition] &= this->lastBlock;
 		}
 
 		friend std::ostream &operator<<(std::ostream &os, const Epitome &epitome) {
