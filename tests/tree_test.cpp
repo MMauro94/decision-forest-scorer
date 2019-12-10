@@ -2,7 +2,7 @@
 #include <random>
 #include <chrono>
 #include "../src/Tree.h"
-#include "../src/RapidScorer.h"
+#include "../src/rapidscorer/RapidScorers.h"
 
 double dRand(double min, double max) {
 	double d = (double) rand() / RAND_MAX;

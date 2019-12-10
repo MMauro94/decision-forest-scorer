@@ -1,8 +1,9 @@
 #include <iostream>
 #include "Tree.h"
-#include "RapidScorer.h"
+#include "rapidscorer/RapidScorers.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
+#include "SIMDDoubleGroup.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -117,6 +118,7 @@ long testFold(const int fold) {
 
 	std::cout << "Parsing documents...";
 	const auto &doc = parseDocuments(fold, max);
+	const auto &docGroups = SIMDDoubleGroup::groupByFour(doc);
 	std::cout << "OK" << std::endl;
 
 	std::cout << "Parsing scores...";

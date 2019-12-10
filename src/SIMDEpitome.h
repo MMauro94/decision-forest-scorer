@@ -13,8 +13,7 @@
 #include <deque>
 #include "config.h"
 
-template<typename Block>
-class Epitome {
+class SIMDEpitome {
 	private:
 		Block firstBlock;
 		uint8_t firstBlockPosition;

@@ -2,7 +2,17 @@
 <project version="4">
   <component name="PublishConfigData">
     <serverData>
-      <paths name="WSL (4e4cd8c8-df7a-4f1b-a700-3a41ed9374fd)">
+      <paths name="FEMA (972f1262-7ad9-44b1-8e0f-b7c98431d4ec)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/tmp.paCrh95G0A" local="$PROJECT_DIR$" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+      <paths name="WSL (d826cd98-bf85-429e-aa3c-e8027e1417b6)">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />

@@ -15,11 +15,14 @@ add_executable(forest_tree_evaluator
         src/ResultMask.h
         src/config.h
         src/EqNode.h
-        src/RapidScorer.h
+        src/rapidscorer/RapidScorers.h
+        src/rapidscorer/EqNodesRapidScorer.h
+        src/rapidscorer/LinearizedRapidScorer.h
+        src/rapidscorer/SIMDRapidScorer.h
         src/main.cpp
         #tests/epitome_test.cpp
         ${json_files}
-        )
+        src/SIMDDoubleGroup.h)
 
 
 find_package(OpenMP)

@@ -8,7 +8,8 @@
 #define PARALLEL_SCORE false
 #define PARALLEL_FORESTS false
 #define PARALLEL_DOCUMENTS true
-#define LINEARIZE_EQ_NODES true
+#define RAPID_SCORER_IMPL SIMDRapidScorer
+#define RAPID_SCORER_IMPL_STR "SIMDRapidScorer.h"
 
 typedef std::uint16_t BLOCK;
 constexpr auto MASK_SIZE = sizeof(BLOCK) * 8;
