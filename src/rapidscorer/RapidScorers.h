@@ -1,23 +1,16 @@
-//
-// Created by molin on 11/11/2019.
-//
-
 #ifndef FOREST_TREE_EVALUATOR_RAPIDSCORERE_H
 #define FOREST_TREE_EVALUATOR_RAPIDSCORERE_H
 
 #include <memory>
 #include <algorithm>
+#include "../config.h"
 #include "../Tree.h"
 #include "../EqNode.h"
 #include "../ResultMask.h"
-#include "LinearizedRapidScorer.h"
+#include RAPID_SCORER_IMPL_STR
 
 
-#if LINEARIZE_EQ_NODES
-typedef LinearizedRapidScorer RapidScorer;
-#else
-ftypedef EqNodesRapidScorer RapidScorer;
-#endif
+typedef RAPID_SCORER_IMPL RapidScorer;
 
 class RapidScorers {
 		std::vector<RapidScorer> scorers;

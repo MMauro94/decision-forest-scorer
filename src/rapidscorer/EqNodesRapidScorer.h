@@ -1,9 +1,10 @@
-//
-// Created by molin on 10/12/2019.
-//
-
 #ifndef FOREST_TREE_EVALUATOR_EQNODESRAPIDSCORER_H
 #define FOREST_TREE_EVALUATOR_EQNODESRAPIDSCORER_H
+
+#include <memory>
+#include "../Tree.h"
+#include "../EqNode.h"
+#include "../ResultMask.h"
 
 class EqNodesRapidScorer {
 		std::shared_ptr<Forest> forest;
@@ -26,7 +27,7 @@ class EqNodesRapidScorer {
 
 
 	public:
-		EqNodesRapidScorer(std::shared_ptr<Forest> forest) : forest(std::move(forest)) {
+		explicit EqNodesRapidScorer(std::shared_ptr<Forest> forest) : forest(std::move(forest)) {
 			for (auto &tree : this->forest->trees) {
 				addNodes(tree.root);
 			}
@@ -62,11 +63,5 @@ class EqNodesRapidScorer {
 			return result.computeScore();
 		}
 };
-
-#include <memory>
-#include <algorithm>
-#include "Tree.h"
-#include "EqNode.h"
-#include "ResultMask.h"
 
 #endif //FOREST_TREE_EVALUATOR_EQNODESRAPIDSCORER_H
