@@ -53,16 +53,16 @@ class Epitome {
 			}
 		}
 
-		void performAnd(std::vector<MaskType> &masks, unsigned int treeIndex, unsigned int masksPerTree) const {
+		void performAnd(std::vector<MaskType> &results, unsigned int treeIndex, unsigned int masksPerTree) const {
 			unsigned int start = treeIndex * masksPerTree;
 
-			masks[start + this->firstBlockPosition] &= this->firstBlock;
+			results[start + this->firstBlockPosition] &= this->firstBlock;
 			if (this->firstBlockPosition != this->lastBlockPosition) {
 				unsigned int end = start + this->lastBlockPosition;
 				for (unsigned int i = start + this->firstBlockPosition + 1u; i < end; i++) {
-					masks[i] = 0;
+					results[i] = 0;
 				}
-				masks[end] &= this->lastBlock;
+				results[end] &= this->lastBlock;
 			}
 		}
 

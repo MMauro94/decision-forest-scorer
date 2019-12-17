@@ -22,7 +22,10 @@ add_executable(forest_tree_evaluator
         src/main.cpp
         #tests/epitome_test.cpp
         ${json_files}
-        src/SIMDDoubleGroup.h)
+        src/SIMDDoubleGroup.h
+        src/SIMDEpitome.h
+        src/SIMDResultMask.h
+        )
 
 
 find_package(OpenMP)

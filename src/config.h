@@ -11,6 +11,8 @@
 #define RAPID_SCORER_IMPL SIMDRapidScorer
 #define RAPID_SCORER_IMPL_STR "SIMDRapidScorer.h"
 
+#include <immintrin.h>
+
 typedef std::uint16_t BLOCK;
 constexpr auto MASK_SIZE = sizeof(BLOCK) * 8;
 
@@ -19,5 +21,9 @@ typedef std::atomic_uint16_t MaskType;//TODO: provare ad usare istruzione al pos
 #else
 typedef BLOCK MaskType;
 #endif
+
+auto SIMD_512_ZERO = _mm512_set1_epi64(0);
+auto SIMD_512_ONE = _mm512_set1_epi64(1);
+
 
 #endif

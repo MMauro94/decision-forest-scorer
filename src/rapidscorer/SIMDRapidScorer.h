@@ -47,7 +47,7 @@ class SIMDRapidScorer {
 
 			int i = 0;
 			for (auto &node : nodes) {
-				this->featureThresholds->addFourTimes(node->splittingThreshold);
+				this->featureThresholds.addEightTimes(node->splittingThreshold);
 
 				this->treeIndexes.emplace_back(node->getTreeIndex());
 				this->epitomes.emplace_back(this->forest->trees[node->getTreeIndex()].countLeafsUntil(node),
@@ -60,13 +60,13 @@ class SIMDRapidScorer {
 			}
 		}
 
-		[[nodiscard]] double score(const std::vector<double> &document) const {
+		[[nodiscard]] double score(const SIMDDoubleGroup &documents) const {
 			ResultMask result(this->forest);
 
 			unsigned long max = this->offsets.size();
-#pragma omp parallel for if(PARALLEL_MASK) default(none) shared(result) shared(document) shared(max)
+#pragma omp parallel for if(PARALLEL_MASK) default(none) shared(result) shared(documents) shared(max)
 			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
-				double value = document[featureIndex];
+				__m512d value = documents.get(featureIndex);
 				unsigned int start = this->offsets[featureIndex];
 				unsigned int end;
 				if (featureIndex + 1 < this->offsets.size()) {
@@ -75,7 +75,7 @@ class SIMDRapidScorer {
 					end = this->featureThresholds.size();
 				}
 
-
+				//TODO Cambiare
 				unsigned long epitomesToEpitome = std::lower_bound(
 						this->featureThresholds.begin() + start,
 						this->featureThresholds.begin() + end,
