@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <immintrin.h>
 #include "../Tree.h"
-#include "../ResultMask.h"
 #include "../SIMDDoubleGroup.h"
+#include "../SIMDResultMask.h"
 
 class SIMDRapidScorer {
 		std::shared_ptr<Forest> forest;
@@ -61,7 +61,7 @@ class SIMDRapidScorer {
 		}
 
 		[[nodiscard]] double score(const SIMDDoubleGroup &documents) const {
-			ResultMask result(this->forest);
+			SIMDResultMask result(this->forest);
 
 			unsigned long max = this->offsets.size();
 #pragma omp parallel for if(PARALLEL_MASK) default(none) shared(result) shared(documents) shared(max)
@@ -75,14 +75,11 @@ class SIMDRapidScorer {
 					end = this->featureThresholds.size();
 				}
 
-				//TODO Cambiare
-				unsigned long epitomesToEpitome = std::lower_bound(
-						this->featureThresholds.begin() + start,
-						this->featureThresholds.begin() + end,
-						value
-				) - this->featureThresholds.begin();
-
-				for (unsigned long j = start; j < epitomesToEpitome; j++) {
+				__mmask8 isLE = 0xFF;
+				int i = 0;
+				while(isLE > 0) {
+					isLE=_mm512_mask_cmp_pd_mask(isLE, value, this->featureThresholds.get(start+i), _CMP_NGT_US);
+					i++;
 					result.applyMask(this->epitomes[j], this->treeIndexes[j]);
 				}
 			}
