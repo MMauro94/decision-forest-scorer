@@ -2,8 +2,8 @@
 // Created by molin on 28/10/2019.
 //
 
-#ifndef FOREST_TREE_EVALUATOR_RESULTMASK_H
-#define FOREST_TREE_EVALUATOR_RESULTMASK_H
+#ifndef FOREST_TREE_EVALUATOR_SIMD_RESULTMASK_H
+#define FOREST_TREE_EVALUATOR_SIMD_RESULTMASK_H
 
 
 #include <immintrin.h>
@@ -55,12 +55,12 @@ class SIMDResultMask {
 
 	private:
 
-		[[nodiscard]] __m512 firstOne(unsigned long treeIndex) const {
+		[[nodiscard]] __m512i firstOne(unsigned long treeIndex) const {
 			__mmask8 foundResults = 0xFF;
-			__m512 resultIndexes = SIMD_512_ZERO;
-			__m512 blockResult = SIMD_512_ZERO;
+			__m512i resultIndexes = SIMD_512_ZERO;
+			__m512i blockResult = SIMD_512_ZERO;
 
-			__m512 sixtyfour = _mm512_set1_epi64(64);
+			__m512i sixtyfour = _mm512_set1_epi64(64);
 			unsigned long mult = this->masksPerTree * treeIndex;
 
 			unsigned long i = mult;
@@ -77,4 +77,4 @@ class SIMDResultMask {
 
 };
 
-#endif //FOREST_TREE_EVALUATOR_RESULTMASK_H
+#endif //FOREST_TREE_EVALUATOR_SIMD_RESULTMASK_H

@@ -7,11 +7,9 @@
 #include "../Tree.h"
 #include "../EqNode.h"
 #include "../ResultMask.h"
-#include RAPID_SCORER_IMPL_STR
+#include "../SIMDDoubleGroup.h"
 
-
-typedef RAPID_SCORER_IMPL RapidScorer;
-
+template <class RapidScorer>
 class RapidScorers {
 		std::vector<RapidScorer> scorers;
 
@@ -30,6 +28,20 @@ class RapidScorers {
 			}
 			return score;
 		}
+
+		[[nodiscard]] std::vector<double> score(const SIMDDoubleGroup &documents) const {
+			std::vector<double> scores(8, 0.0);
+#pragma omp parallel for if(PARALLEL_FORESTS) default(none) shared(documents) shared(scores)
+			for (unsigned long i = 0; i < this->scorers.size(); i++) { // NOLINT(modernize-loop-convert)
+				std::vector<double> score = this->scorers[i].score(documents);
+				for (unsigned int j = 0; j < 8; j++) {
+#pragma omp atomic
+					scores[j] += score[j];
+				}
+			}
+			return scores;
+		}
+
 };
 
 

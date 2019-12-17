@@ -60,8 +60,7 @@ class SIMDDoubleGroup {
 			return this->values.size();
 		}
 
-		[[nodiscard]] static std::vector<SIMDDoubleGroup>
-		groupByEight(const std::vector<std::vector<double>> &values) {
+		[[nodiscard]] static std::vector<SIMDDoubleGroup> groupByEight(const std::vector<std::vector<double>> &values) {
 			ulong size = values.size();
 			std::vector<SIMDDoubleGroup> ret;
 			ulong i;

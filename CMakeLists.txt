@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(forest_tree_evaluator)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "-O3")
+set(CMAKE_CXX_FLAGS "-O3 -mavx512vl -mavx512cd")
 
 file(GLOB json_files
         "src/rapidjson/*.h"
@@ -24,8 +24,7 @@ add_executable(forest_tree_evaluator
         ${json_files}
         src/SIMDDoubleGroup.h
         src/SIMDEpitome.h
-        src/SIMDResultMask.h
-        )
+        src/SIMDResultMask.h)
 
 
 find_package(OpenMP)

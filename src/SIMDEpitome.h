@@ -2,8 +2,8 @@
 // Created by molin on 28/10/2019.
 //
 
-#ifndef FOREST_TREE_EVALUATOR_EPITOME_H
-#define FOREST_TREE_EVALUATOR_EPITOME_H
+#ifndef FOREST_TREE_EVALUATOR_SIMD_EPITOME_H
+#define FOREST_TREE_EVALUATOR_SIMD_EPITOME_H
 
 #include <immintrin.h>
 #include <stdexcept>
@@ -52,8 +52,8 @@ class SIMDEpitome {
 				lb = fb;
 			}
 
-			this->firstBlock = _mm512_set1_epi64(fb);
-			this->lastBlock = _mm512_set1_epi64(lb);
+			this->firstBlock = _mm512_set1_epi64((long long int) fb);
+			this->lastBlock = _mm512_set1_epi64((long long int) lb);
 		}
 
 		void performAnd(
@@ -90,4 +90,4 @@ class SIMDEpitome {
 };
 
 
-#endif //FOREST_TREE_EVALUATOR_EPITOME_H
+#endif //FOREST_TREE_EVALUATOR_SIMD_EPITOME_H

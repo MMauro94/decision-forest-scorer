@@ -12,7 +12,7 @@ class SIMDRapidScorer {
 		std::shared_ptr<Forest> forest;
 		SIMDDoubleGroup featureThresholds;
 		std::vector<unsigned int> treeIndexes;
-		std::vector<Epitome<BLOCK>> epitomes;
+		std::vector<SIMDEpitome> epitomes;
 		std::vector<unsigned int> offsets;
 
 		static void
@@ -60,7 +60,7 @@ class SIMDRapidScorer {
 			}
 		}
 
-		[[nodiscard]] double score(const SIMDDoubleGroup &documents) const {
+		[[nodiscard]] std::vector<double> score(const SIMDDoubleGroup &documents) const {
 			SIMDResultMask result(this->forest);
 
 			unsigned long max = this->offsets.size();
@@ -68,19 +68,13 @@ class SIMDRapidScorer {
 			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
 				__m512d value = documents.get(featureIndex);
 				unsigned int start = this->offsets[featureIndex];
-				unsigned int end;
-				if (featureIndex + 1 < this->offsets.size()) {
-					end = this->offsets[featureIndex + 1];
-				} else {
-					end = this->featureThresholds.size();
-				}
 
 				__mmask8 isLE = 0xFF;
-				int i = 0;
-				while(isLE > 0) {
-					isLE=_mm512_mask_cmp_pd_mask(isLE, value, this->featureThresholds.get(start+i), _CMP_NGT_US);
+				unsigned int i = start;
+				while (isLE > 0) {
+					isLE = _mm512_mask_cmp_pd_mask(isLE, value, this->featureThresholds.get(i), _CMP_NGT_US);
 					i++;
-					result.applyMask(this->epitomes[j], this->treeIndexes[j]);
+					result.applyMask(this->epitomes[i], this->treeIndexes[i], isLE);
 				}
 			}
 

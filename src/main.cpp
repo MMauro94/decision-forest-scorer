@@ -4,6 +4,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 #include "SIMDDoubleGroup.h"
+#include "rapidscorer/SIMDRapidScorer.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -118,7 +119,7 @@ long testFold(const int fold) {
 
 	std::cout << "Parsing documents...";
 	const auto &doc = parseDocuments(fold, max);
-	const auto &docGroups = SIMDDoubleGroup::groupByFour(doc);
+	const auto &docGroups = SIMDDoubleGroup::groupByEight(doc);
 	std::cout << "OK" << std::endl;
 
 	std::cout << "Parsing scores...";
@@ -128,15 +129,14 @@ long testFold(const int fold) {
 	std::cout << "OK" << std::endl;
 
 
-	RapidScorers scorer(f);
+	RapidScorers<SIMDRapidScorer> scorer(f);
 	std::cout << "Starting scoring..." << std::endl;
 
 	auto t1 = std::chrono::high_resolution_clock::now();
-#pragma omp parallel for if(PARALLEL_DOCUMENTS) default(none), shared(scorer), shared(doc), shared(testScores), shared(std::cout)
-	for (int i = 0; i < max; i++) {
-		const double score = scorer.score(doc[i]);
+#pragma omp parallel for if(PARALLEL_DOCUMENTS) default(none), shared(scorer), shared(doc), shared(testScores), shared(std::cout), shared(docGroups)
+	for (int i = 0; i < docGroups.size(); i++) {
+		const auto score = scorer.score(docGroups[i]);
 		//const double score = f->score(doc[i]);
-		const double testScore = testScores[i];
 
 		/*if (i % 1000 == 0) {
 			auto t2 = std::chrono::high_resolution_clock::now();
@@ -145,10 +145,14 @@ long testFold(const int fold) {
 			std::cout << "Done " << i << " documents in " << duration / 1000000000.0 << "s" << std::endl;
 		}*/
 
-		if (std::abs(score - testScore) > TEST_EQUALITY_THRESHOLD) {
-			std::string out = "Test failed: Mismatch: expecting " + std::to_string(testScore) + ", found " + std::to_string(score) + "\n";
-			std::cout << out;
-			exit(1);
+		for (int j = 0; j < 8 && i * 8 + j < testScores.size(); j++) {
+			const double testScore = testScores[i * 8 + j];
+			if (std::abs(score[j] - testScore) > TEST_EQUALITY_THRESHOLD) {
+				std::string out = "Test failed: Mismatch: expecting " + std::to_string(testScore) + ", found " +
+								  std::to_string(score[j]) + "\n";
+				std::cout << out;
+				exit(1);
+			}
 		}
 	}
 	auto t2 = std::chrono::high_resolution_clock::now();

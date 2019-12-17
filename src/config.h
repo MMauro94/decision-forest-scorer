@@ -8,8 +8,6 @@
 #define PARALLEL_SCORE false
 #define PARALLEL_FORESTS false
 #define PARALLEL_DOCUMENTS true
-#define RAPID_SCORER_IMPL SIMDRapidScorer
-#define RAPID_SCORER_IMPL_STR "SIMDRapidScorer.h"
 
 #include <immintrin.h>
 
