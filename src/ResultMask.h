@@ -19,17 +19,17 @@ class ResultMask {
 	private:
 		std::shared_ptr<Forest> _forest;
 		unsigned int masksPerTree;
-		std::vector<MaskType> masks;
+		std::vector<MaskType> results;
 
 	public:
 
 		explicit ResultMask(std::shared_ptr<Forest> forest) :
 				_forest(std::move(forest)),
 				masksPerTree(this->_forest->maximumNumberOfLeafs() / MASK_SIZE + 1),
-				masks(this->_forest->trees.size() * this->masksPerTree, -1) {}
+				results(this->_forest->trees.size() * this->masksPerTree, -1) {}
 
 		void applyMask(const Epitome<BLOCK> &epitome, const unsigned int treeIndex) {
-			epitome.performAnd(this->masks, treeIndex, this->masksPerTree);
+			epitome.performAnd(this->results, treeIndex, this->masksPerTree);
 		}
 
 		[[nodiscard]] double computeScore() const {
@@ -49,10 +49,10 @@ class ResultMask {
 			unsigned long mult = this->masksPerTree * treeIndex;
 
 			unsigned long i = 0;
-			while (this->masks[mult + i] == 0) {
+			while (this->results[mult + i] == 0) {
 				i++;
 			}
-			auto mask = this->masks[mult + i];
+			auto mask = this->results[mult + i];
 
 
 			unsigned int j = 0;

@@ -148,10 +148,10 @@ long testFold(const int fold) {
 		for (int j = 0; j < 8 && i * 8 + j < testScores.size(); j++) {
 			const double testScore = testScores[i * 8 + j];
 			if (std::abs(score[j] - testScore) > TEST_EQUALITY_THRESHOLD) {
-				std::string out = "Test failed: Mismatch: expecting " + std::to_string(testScore) + ", found " +
+				std::string out = "Test failed at " + std::to_string(i) +  "/" + std::to_string(docGroups.size()) + ": Mismatch: expecting " + std::to_string(testScore) + ", found " +
 								  std::to_string(score[j]) + "\n";
 				std::cout << out;
-				exit(1);
+				//exit(1);
 			}
 		}
 	}
