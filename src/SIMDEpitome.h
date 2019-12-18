@@ -76,7 +76,7 @@ class SIMDEpitome {
 				unsigned int end = start + this->lastBlockPosition;
 				for (unsigned int i = start + this->firstBlockPosition + 1u; i < end; i++) {
 					//TODO trovare un modo meglio
-					results[i] = _mm512_mask_and_epi64(results[i], mask, SIMD_512_ZERO, results[i]);
+					results[i] = _mm512_mask_and_epi64(results[i], mask, _mm512_set1_epi64(0), results[i]);
 				}
 				results[end] = _mm512_mask_and_epi64(
 						results[end],

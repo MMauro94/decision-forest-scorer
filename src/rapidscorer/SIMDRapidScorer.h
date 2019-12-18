@@ -73,8 +73,8 @@ class SIMDRapidScorer {
 				unsigned int i = start;
 				while (isLE > 0) {
 					isLE = _mm512_mask_cmp_pd_mask(isLE, value, this->featureThresholds.get(i), _CMP_NGT_US);
-					i++;
 					result.applyMask(this->epitomes[i], this->treeIndexes[i], isLE);
+					i++;
 				}
 			}
 

@@ -44,8 +44,7 @@ class SIMDDoubleGroup {
 		}
 
 		void add(double v1, double v2, double v3, double v4, double v5, double v6, double v7, double v8) {
-			const double d[] = {v1, v2, v3, v4, v5, v6, v7, v8};
-			this->values.push_back(_mm512_load_pd(d));
+			this->values.push_back(_mm512_set_pd(v8, v7, v6, v5, v4, v3, v2, v1));
 		}
 
 		void addEightTimes(double v) {

@@ -20,8 +20,4 @@ typedef std::atomic_uint16_t MaskType;//TODO: provare ad usare istruzione al pos
 typedef BLOCK MaskType;
 #endif
 
-auto SIMD_512_ZERO = _mm512_set1_epi64(0);
-auto SIMD_512_ONE = _mm512_set1_epi64(1);
-
-
 #endif

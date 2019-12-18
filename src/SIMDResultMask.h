@@ -29,7 +29,7 @@ class SIMDResultMask {
 				masksPerTree(this->_forest->maximumNumberOfLeafs() / MASK_SIZE + 1) {
 			__m512i ones = _mm512_set1_epi64(-1);
 			for (unsigned long i = 0; i < this->_forest->trees.size() * this->masksPerTree; i++) {
-				this->masks.emplace_back(ones);
+				this->masks.push_back(ones);
 			}
 		}
 
@@ -41,7 +41,7 @@ class SIMDResultMask {
 			std::vector<double> scores(8, 0.0);
 #pragma omp parallel for if(PARALLEL_SCORE) default(none) shared(scores)
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
-				int64_t leafIndexes[8];
+				alignas(64) int64_t leafIndexes[8];
 				_mm512_store_epi64(leafIndexes, this->firstOne(i));
 				auto &tree = this->_forest->trees[i];
 				for (unsigned int j = 0; j < 8; j++) {
@@ -57,8 +57,8 @@ class SIMDResultMask {
 
 		[[nodiscard]] __m512i firstOne(unsigned long treeIndex) const {
 			__mmask8 foundResults = 0xFF;
-			__m512i resultIndexes = SIMD_512_ZERO;
-			__m512i blockResult = SIMD_512_ZERO;
+			__m512i resultIndexes = _mm512_set1_epi64(0);
+			__m512i blockResult = _mm512_set1_epi64(0);
 
 			__m512i sixtyfour = _mm512_set1_epi64(64);
 			unsigned long mult = this->masksPerTree * treeIndex;
@@ -66,7 +66,7 @@ class SIMDResultMask {
 			unsigned long i = mult;
 			while (foundResults > 0) {
 				blockResult = _mm512_mask_mov_epi64(blockResult, foundResults, this->masks[i]);
-				foundResults = _mm512_mask_cmp_epi64_mask(foundResults, this->masks[i], SIMD_512_ZERO, _MM_CMPINT_EQ);
+				foundResults = _mm512_mask_cmp_epi64_mask(foundResults, this->masks[i], _mm512_set1_epi64(0), _MM_CMPINT_EQ);
 				_mm512_mask_add_epi64(resultIndexes, foundResults, resultIndexes, sixtyfour);
 				i++;
 			}
