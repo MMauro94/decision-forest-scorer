@@ -66,8 +66,9 @@ class SIMDResultMask {
 			unsigned long i = mult;
 			while (foundResults > 0) {
 				blockResult = _mm512_mask_mov_epi64(blockResult, foundResults, this->masks[i]);
-				foundResults = _mm512_mask_cmp_epi64_mask(foundResults, this->masks[i], _mm512_set1_epi64(0), _MM_CMPINT_EQ);
-				_mm512_mask_add_epi64(resultIndexes, foundResults, resultIndexes, sixtyfour);
+				foundResults = _mm512_mask_cmp_epi64_mask(foundResults, this->masks[i], _mm512_set1_epi64(0),
+														  _MM_CMPINT_EQ);
+				resultIndexes = _mm512_mask_add_epi64(resultIndexes, foundResults, resultIndexes, sixtyfour);
 				i++;
 			}
 
