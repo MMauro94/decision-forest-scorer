@@ -31,9 +31,9 @@ class SIMDRapidScorer {
 
 		[[nodiscard]] static bool
 		nodeComparator(const std::shared_ptr<InternalNode> &node1, const std::shared_ptr<InternalNode> &node2) {
-			if (node1->splittingFeatureIndex < node2->splittingFeatureIndex) return true;
-			else if (node1->splittingFeatureIndex > node2->splittingFeatureIndex) return false;
-			else return node1->splittingThreshold < node2->splittingThreshold;
+			if (node1->splittingFeatureIndex < node2->splittingFeatureIndex) { return true; }
+			else if (node1->splittingFeatureIndex > node2->splittingFeatureIndex) { return false; }
+			else { return node1->splittingThreshold < node2->splittingThreshold; }
 		}
 
 	public:
@@ -68,14 +68,18 @@ class SIMDRapidScorer {
 			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
 				__m512d value = documents.get(featureIndex);
 				unsigned int start = this->offsets[featureIndex];
+				unsigned int end;
+				if (featureIndex + 1 < this->offsets.size()) {
+					end = this->offsets[featureIndex + 1];
+				} else {
+					end = this->featureThresholds.size();
+				}
 
 				__mmask8 isLE = 0xFF;
-				unsigned int i = start;
-				while (isLE > 0) {
+				for (unsigned int i = start; i < end && isLE > 0; i++) {
 					// extract mask of comparison 1 if the comparison is FALSE
 					isLE = _mm512_mask_cmp_pd_mask(isLE, value, this->featureThresholds.get(i), _CMP_GT_OQ);
 					result.applyMask(this->epitomes[i], this->treeIndexes[i], isLE);
-					i++;
 				}
 			}
 

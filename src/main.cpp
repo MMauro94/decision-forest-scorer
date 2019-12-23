@@ -113,7 +113,7 @@ std::vector<double> parseScores(const int fold, const int max = -1) {
 
 
 long testFold(const int fold) {
-	const int max = 10000;
+	const int max = 100000;
 
 	auto f = parseForests(fold);
 
@@ -133,22 +133,22 @@ long testFold(const int fold) {
 	std::cout << "Starting scoring..." << std::endl;
 
 	auto t1 = std::chrono::high_resolution_clock::now();
-#pragma omp parallel for if(PARALLEL_DOCUMENTS) default(none), shared(scorer), shared(doc), shared(testScores), shared(std::cout), shared(docGroups)
+#pragma omp parallel for if(PARALLEL_DOCUMENTS) default(none), shared(scorer), shared(doc), shared(testScores), shared(std::cout), shared(docGroups), shared(t1)
 	for (int i = 0; i < docGroups.size(); i++) {
 		const auto score = scorer.score(docGroups[i]);
 		//const double score = f->score(doc[i]);
 
-		/*if (i % 1000 == 0) {
+		if (i % 100 == 0) {
 			auto t2 = std::chrono::high_resolution_clock::now();
 			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
-			std::cout << "Done " << i << " documents in " << duration / 1000000000.0 << "s" << std::endl;
-		}*/
+			std::cout << "Done " << (i * 8) << " documents in " << duration / 1000000000.0 << "s" << std::endl;
+		}
 
 		for (int j = 0; j < 8 && i * 8 + j < testScores.size(); j++) {
 			const double testScore = testScores[i * 8 + j];
 			if (std::abs(score[j] - testScore) > TEST_EQUALITY_THRESHOLD) {
-				std::string out = "Test failed at " + std::to_string(i) +  "/" + std::to_string(docGroups.size()) + ": Mismatch: expecting " + std::to_string(testScore) + ", found " +
+				std::string out = "Test failed at " + std::to_string(i) + "/" + std::to_string(docGroups.size()) + ": Mismatch: expecting " + std::to_string(testScore) + ", found " +
 								  std::to_string(score[j]) + "\n";
 				std::cout << out;
 				//exit(1);
