@@ -14,7 +14,6 @@
 #include <strings.h>
 #include "config.h"
 #include "Tree.h"
-#include "SIMDEpitome.h"
 
 class SIMDResultMask {
 	private:
@@ -33,13 +32,13 @@ class SIMDResultMask {
 			}
 		}
 
-		void applyMask(const SIMDEpitome &epitome, const unsigned int treeIndex, __mmask8 mask) {
+		void applyMask(const Epitome<uint64_t> &epitome, const unsigned int treeIndex, __mmask8 mask) {
 			epitome.performAnd(this->results, treeIndex, this->masksPerTree, mask);
 		}
 
 		[[nodiscard]] std::vector<double> computeScore() const {
 			std::vector<double> scores(8, 0.0);
-#pragma omp parallel for if(PARALLEL_SCORE) default(none) shared(scores)
+#pragma omp parallel for num_threads(NUMBER_OF_THREADS) if(PARALLEL_SCORE) default(none) shared(scores)
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
 				alignas(64) int64_t leafIndexes[8];
 				_mm512_store_epi64(leafIndexes, this->firstOne(i));
@@ -51,26 +50,6 @@ class SIMDResultMask {
 				}
 			}
 			return scores;
-		}
-
-
-		static void printAVX512i_binary(__m512i avx_integer) {
-			alignas(64) int64_t local[8];
-			_mm512_store_epi64(local, avx_integer);
-			for (int i = 0; i < 8; i++) {
-				auto bs = std::bitset<64>(local[i]);
-				std::cout << bs << "|";
-			}
-			std::cout << std::endl;
-		}
-
-		static void printAVX512i_decimal(__m512i avx_integer) {
-			alignas(64) int64_t local[8];
-			_mm512_store_epi64(local, avx_integer);
-			for (int i = 0; i < 8; i++) {
-				std::cout << local[i] << ", ";
-			}
-			std::cout << std::endl;
 		}
 
 	private:

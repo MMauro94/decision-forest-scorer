@@ -16,9 +16,9 @@
 
 class SIMDEpitome {
 	private:
-		__m512i firstBlock;
+		uint64_t firstBlock;
 		uint8_t firstBlockPosition;
-		__m512i lastBlock;
+		uint64_t lastBlock;
 		uint8_t lastBlockPosition;
 
 		static constexpr inline auto Bits = 64;
@@ -52,41 +52,11 @@ class SIMDEpitome {
 				lb = fb;
 			}
 
-			this->firstBlock = _mm512_set1_epi64((long long int) fb);
-			this->lastBlock = _mm512_set1_epi64((long long int) lb);
+			this->firstBlock = fb;
+			this->lastBlock = lb;
 		}
 
-		void performAnd(
-				std::vector<__m512i> &results,
-				unsigned int treeIndex,
-				unsigned int masksPerTree,
-				__mmask8 mask
-		) const {
-			unsigned int start = treeIndex * masksPerTree;
 
-
-			results[start + this->firstBlockPosition] = _mm512_mask_and_epi64(
-					results[start + this->firstBlockPosition],
-					mask,
-					this->firstBlock,
-					results[start + this->firstBlockPosition]
-			);
-
-			if (this->firstBlockPosition != this->lastBlockPosition) {
-				unsigned int end = start + this->lastBlockPosition;
-				for (unsigned int i = start + this->firstBlockPosition + 1u; i < end; i++) {
-					//TODO trovare un modo meglio
-					results[i] = _mm512_mask_and_epi64(results[i], mask, _mm512_set1_epi64(0), results[i]);
-				}
-				results[end] = _mm512_mask_and_epi64(
-						results[end],
-						mask,
-						this->lastBlock,
-						results[end]
-				);
-			}
-
-		}
 };
 
 

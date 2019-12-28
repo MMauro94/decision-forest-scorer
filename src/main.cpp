@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <omp.h>
 
 #define TEST_EQUALITY_THRESHOLD 0.00001
 std::string DOCUMENTS_ROOT = "documents";
@@ -111,15 +112,16 @@ std::vector<double> parseScores(const int fold, const int max = -1) {
 	return ret;
 }
 
-
+template<class RapidScorer>
 long testFold(const int fold) {
-	const int max = 100000;
+
+	const int max = 10000;
 
 	auto f = parseForests(fold);
 
 	std::cout << "Parsing documents...";
 	const auto &doc = parseDocuments(fold, max);
-	const auto &docGroups = SIMDDoubleGroup::groupByEight(doc);
+	const auto &docGroups = RapidScorer::DocGroup::create(doc);
 	std::cout << "OK" << std::endl;
 
 	std::cout << "Parsing scores...";
@@ -129,36 +131,41 @@ long testFold(const int fold) {
 	std::cout << "OK" << std::endl;
 
 
-	RapidScorers<SIMDRapidScorer> scorer(f);
+	RapidScorers<RapidScorer> scorer(f);
 	std::cout << "Starting scoring..." << std::endl;
+	const int numberOfDocuments = RapidScorer::DocGroup::numberOfDocuments();
 
 	auto t1 = std::chrono::high_resolution_clock::now();
-#pragma omp parallel for if(PARALLEL_DOCUMENTS) default(none), shared(scorer), shared(doc), shared(testScores), shared(std::cout), shared(docGroups), shared(t1)
+#pragma omp parallel for num_threads(NUMBER_OF_THREADS) if(PARALLEL_DOCUMENTS) default(none), shared(scorer), shared(doc), shared(testScores), shared(std::cout), shared(docGroups), shared(t1)
 	for (int i = 0; i < docGroups.size(); i++) {
 		const auto score = scorer.score(docGroups[i]);
 		//const double score = f->score(doc[i]);
 
-		if (i % 100 == 0) {
+		const int doneDocs = (i + 1) * numberOfDocuments;
+		if (doneDocs % (numberOfDocuments * 100) == 0 || i == docGroups.size() - 1) {
+
 			auto t2 = std::chrono::high_resolution_clock::now();
 			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
-			std::cout << "Done " << (i * 8) << " documents in " << duration / 1000000000.0 << "s" << std::endl;
+			std::cout << "Done " << doneDocs << " documents in " << duration / 1000000000.0 << "s (" << (duration / doneDocs) << " ns)" << std::endl;
 		}
 
-		for (int j = 0; j < 8 && i * 8 + j < testScores.size(); j++) {
-			const double testScore = testScores[i * 8 + j];
+		const int docs = i * numberOfDocuments;
+		for (int j = 0; j < numberOfDocuments && docs + j < testScores.size(); j++) {
+			const double testScore = testScores[docs + j];
 			if (std::abs(score[j] - testScore) > TEST_EQUALITY_THRESHOLD) {
-				std::string out = "Test failed at " + std::to_string(i) + "/" + std::to_string(docGroups.size()) + ": Mismatch: expecting " + std::to_string(testScore) + ", found " +
+				std::string out = "Test failed at " + std::to_string(i) + "/" + std::to_string(docGroups.size()) +
+								  ": Mismatch: expecting " + std::to_string(testScore) + ", found " +
 								  std::to_string(score[j]) + "\n";
 				std::cout << out;
-				//exit(1);
+				exit(1);
 			}
 		}
 	}
 	auto t2 = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
-	std::cout << "Fold " << fold << " took " << duration / 1000000000.0 << "s" << std::endl;
+	std::cout << "Fold " << fold << " took " << duration / 1000000000.0 << "s (" << (duration / (docGroups.size() * numberOfDocuments)) << " ns)" << std::endl;
 	return duration;
 }
 
@@ -167,7 +174,7 @@ int main() {
 
 	unsigned long tot = 0;
 	for (int i = 1; i <= 1; i++) {
-		tot += testFold(i);
+		tot += testFold<SIMDRapidScorer>(i);
 	}
 	std::cout << "All took " << tot / 1000000000.0 << "s" << std::endl;
 	return 0;

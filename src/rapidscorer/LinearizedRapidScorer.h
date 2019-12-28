@@ -5,8 +5,10 @@
 #include <algorithm>
 #include "../Tree.h"
 #include "../ResultMask.h"
+#include "../DocGroup.h"
 
 class LinearizedRapidScorer {
+
 		std::shared_ptr<Forest> forest;
 		std::vector<double> featureThresholds;
 		std::vector<unsigned int> treeIndexes;
@@ -34,6 +36,8 @@ class LinearizedRapidScorer {
 		}
 
 	public:
+		typedef SingleDocument DocGroup;
+
 		explicit LinearizedRapidScorer(std::shared_ptr<Forest> forest) : forest(std::move(forest)) {
 			std::vector<std::shared_ptr<InternalNode>> nodes;
 			for (auto &tree : this->forest->trees) {
@@ -56,13 +60,13 @@ class LinearizedRapidScorer {
 			}
 		}
 
-		[[nodiscard]] double score(const std::vector<double> &document) const {
+		[[nodiscard]] std::vector<double> score(const DocGroup &document) const {
 			ResultMask result(this->forest);
 
 			unsigned long max = this->offsets.size();
-#pragma omp parallel for if(PARALLEL_MASK) default(none) shared(result) shared(document) shared(max)
+#pragma omp parallel for num_threads(NUMBER_OF_THREADS) if(PARALLEL_MASK) default(none) shared(result) shared(document) shared(max)
 			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
-				double value = document[featureIndex];
+				double value = document.features[featureIndex];
 				unsigned int start = this->offsets[featureIndex];
 				unsigned int end;
 				if (featureIndex + 1 < this->offsets.size()) {
@@ -83,7 +87,7 @@ class LinearizedRapidScorer {
 				}
 			}
 
-			return result.computeScore();
+			return {result.computeScore()};
 		}
 };
 

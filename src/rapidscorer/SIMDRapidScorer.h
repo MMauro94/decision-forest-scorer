@@ -7,16 +7,16 @@
 #include "../Tree.h"
 #include "../SIMDDoubleGroup.h"
 #include "../SIMDResultMask.h"
+#include "../DocGroup.h"
 
 class SIMDRapidScorer {
 		std::shared_ptr<Forest> forest;
 		SIMDDoubleGroup featureThresholds;
 		std::vector<unsigned int> treeIndexes;
-		std::vector<SIMDEpitome> epitomes;
+		std::vector<Epitome<uint64_t>> epitomes;
 		std::vector<unsigned int> offsets;
 
-		static void
-		addNodes(std::vector<std::shared_ptr<InternalNode>> &ret, const std::shared_ptr<InternalNode> &node) {
+		static void addNodes(std::vector<std::shared_ptr<InternalNode>> &ret, const std::shared_ptr<InternalNode> &node) {
 			ret.push_back(node);
 
 			auto leftAsInternalNode = std::dynamic_pointer_cast<InternalNode>(node->leftNode);
@@ -37,6 +37,8 @@ class SIMDRapidScorer {
 		}
 
 	public:
+		typedef SIMDDocumentGroup DocGroup;
+
 		explicit SIMDRapidScorer(std::shared_ptr<Forest> forest) : forest(std::move(forest)) {
 			std::vector<std::shared_ptr<InternalNode>> nodes;
 			for (auto &tree : this->forest->trees) {
@@ -60,11 +62,11 @@ class SIMDRapidScorer {
 			}
 		}
 
-		[[nodiscard]] std::vector<double> score(const SIMDDoubleGroup &documents) const {
+		[[nodiscard]] std::vector<double> score(const DocGroup &documents) const {
 			SIMDResultMask result(this->forest);
 
 			unsigned long max = this->offsets.size();
-#pragma omp parallel for if(PARALLEL_MASK) default(none) shared(result) shared(documents) shared(max)
+#pragma omp parallel for num_threads(NUMBER_OF_THREADS) if(PARALLEL_MASK) default(none) shared(result) shared(documents) shared(max)
 			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
 				__m512d value = documents.get(featureIndex);
 				unsigned int start = this->offsets[featureIndex];

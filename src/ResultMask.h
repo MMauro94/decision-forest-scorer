@@ -34,7 +34,7 @@ class ResultMask {
 
 		[[nodiscard]] double computeScore() const {
 			double score = 0.0;
-#pragma omp parallel for if(PARALLEL_SCORE) default(none) reduction(+:score)
+#pragma omp parallel for num_threads(NUMBER_OF_THREADS) if(PARALLEL_SCORE) default(none) reduction(+:score)
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
 				auto leafIndex = this->firstOne(i);
 				auto &tree = this->_forest->trees[i];

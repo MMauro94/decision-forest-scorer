@@ -6,6 +6,7 @@
 #include <vector>
 #include <thread>
 #include <algorithm>
+#include "config.h"
 
 class InternalNode;
 
@@ -190,7 +191,7 @@ class Forest {
 
 		static std::vector<std::shared_ptr<Forest>> buildForests(std::vector<Tree> &trees) {
 #if PARALLEL_FORESTS
-			unsigned int threads = std::max(2u, std::thread::hardware_concurrency());
+			unsigned int threads = NUMBER_OF_THREADS;
 #else
 			unsigned int threads = 1;
 #endif

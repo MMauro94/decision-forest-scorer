@@ -20,21 +20,12 @@ class RapidScorers {
 			}
 		}
 
-		[[nodiscard]] double score(const std::vector<double> &document) const {
-			double score = 0.0;
-#pragma omp parallel for if(PARALLEL_FORESTS) default(none) shared(document) reduction(+:score)
-			for (unsigned long i = 0; i < this->scorers.size(); i++) { // NOLINT(modernize-loop-convert)
-				score += this->scorers[i].score(document);
-			}
-			return score;
-		}
-
-		[[nodiscard]] std::vector<double> score(const SIMDDoubleGroup &documents) const {
-			std::vector<double> scores(8, 0.0);
-#pragma omp parallel for if(PARALLEL_FORESTS) default(none) shared(documents) shared(scores)
+		[[nodiscard]] std::vector<double> score(const typename RapidScorer::DocGroup &documents) const {
+			std::vector<double> scores(RapidScorer::DocGroup::numberOfDocuments(), 0.0);
+#pragma omp parallel for num_threads(NUMBER_OF_THREADS) if(PARALLEL_FORESTS) default(none) shared(documents) shared(scores)
 			for (unsigned long i = 0; i < this->scorers.size(); i++) { // NOLINT(modernize-loop-convert)
 				std::vector<double> score = this->scorers[i].score(documents);
-				for (unsigned int j = 0; j < 8; j++) {
+				for (unsigned int j = 0; j < RapidScorer::DocGroup::numberOfDocuments(); j++) {
 #pragma omp atomic
 					scores[j] += score[j];
 				}
