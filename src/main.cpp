@@ -6,12 +6,14 @@
 #include "SIMDDoubleGroup.h"
 #include "rapidscorer/SIMDRapidScorer.h"
 #include "rapidscorer/LinearizedRapidScorer.h"
+#include "TestCase.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <omp.h>
+#include <map>
+#include <set>
 
-#define TEST_EQUALITY_THRESHOLD 0.00001
 std::string DOCUMENTS_ROOT = "documents";
 
 template<class GheSboro>
@@ -38,7 +40,7 @@ Tree parseTree(const GheSboro &json) {
 	return Tree(std::dynamic_pointer_cast<InternalNode>(root));
 }
 
-std::vector<Tree> parseTrees(const int fold) {
+std::vector<Tree> parseTrees(const unsigned int fold) {
 	auto t1 = std::chrono::high_resolution_clock::now();
 
 	std::cout << "Starting parsing model.json" << std::endl;
@@ -87,123 +89,82 @@ std::vector<double> parseDocumentLine(const std::string &line) {
 	return ret;
 }
 
-std::vector<std::vector<double>> parseDocuments(const int fold, const int max = -1) {
+std::vector<std::vector<double>> parseDocuments(const unsigned int fold, const unsigned long max = 0u) {
+	std::cout << "Parsing documents... ";
+
 	std::ifstream file;
 	file.open(DOCUMENTS_ROOT + "/Fold" + std::to_string(fold) + "/test.txt");
 	std::string s;
 	std::vector<std::vector<double>> ret;
-	while (std::getline(file, s) && (max == -1 || ret.size() < max)) {
+	while (std::getline(file, s) && (max == 0 || ret.size() < max)) {
 		ret.push_back(parseDocumentLine(s));
 	}
+	std::cout << "OK" << std::endl;
+
 	return ret;
 }
 
-std::vector<double> parseScores(const int fold, const int max = -1) {
+std::vector<double> parseScores(const unsigned int fold, const unsigned long max = 0) {
+	std::cout << "Parsing scores...";
 	std::ifstream file;
 	file.open(DOCUMENTS_ROOT + "/Fold" + std::to_string(fold) + "/test_scores.txt");
 	std::string s;
 	std::vector<double> ret;
-	while (std::getline(file, s) && (max == -1 || ret.size() < max)) {
+	while (std::getline(file, s) && (max == 0 || ret.size() < max)) {
 		ret.push_back(std::stod(s));
 	}
+	std::cout << "OK" << std::endl;
 	return ret;
 }
 
-template<class RapidScorer>
-long testFold(const int fold) {
-	Config<RapidScorer> config(
-			false,
-			false,
-			false,
-			false,
-			8
-	);
+#define MAX_DOCUMENTS 10000
+#define FOLD 1
 
-	const int max = 10000;
+const std::vector<std::shared_ptr<Testable>> TESTS = {
+		std::make_shared<TestCase<SIMDRapidScorer>>(Config<SIMDRapidScorer>::parallelDocuments(4), MAX_DOCUMENTS, FOLD)
+};
 
-	auto trees = parseTrees(fold);
+std::set<unsigned int> detectFolds() {
+	std::set<unsigned int> folds;
+	for (auto &test : TESTS) {
+		folds.insert(test->fold);
+	}
+	return folds;
+}
 
-	std::cout << "Building forests...";
-	const auto &f = Forest::buildForests(config, trees);
-	std::cout << "OK" << std::endl;
-
-
-	std::cout << "Parsing documents...";
-	const auto &doc = parseDocuments(fold, max);
-	const auto &docGroups = RapidScorer::DocGroup::create(doc);
-	std::cout << "OK" << std::endl;
-
-	std::cout << "Parsing scores...";
-	const auto &testScores = parseScores(fold, max);
-
-	assert(doc.size() == testScores.size());
-	std::cout << "OK" << std::endl;
-
-	RapidScorers<RapidScorer> scorer(config, f);
-	std::cout << "Starting scoring..." << std::endl;
-	const int numberOfDocuments = RapidScorer::DocGroup::numberOfDocuments();
-
-	auto t1 = std::chrono::high_resolution_clock::now();
-#pragma omp parallel for num_threads(NUMBER_OF_THREADS) if(PARALLEL_DOCUMENTS) default(none), shared(scorer), shared(doc), shared(testScores), shared(std::cout), shared(docGroups), shared(t1)
-	for (int i = 0; i < docGroups.size(); i++) {
-		const auto score = scorer.score(docGroups[i]);
-		//const double score = f->score(doc[i]);
-
-		const int doneDocs = (i + 1) * numberOfDocuments;
-		if (doneDocs % (numberOfDocuments * 100) == 0 || i == docGroups.size() - 1) {
-
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-
-			std::cout << "Done " << doneDocs << " documents in " << duration / 1000000000.0 << "s (" << (duration / doneDocs) << " ns)" << std::endl;
-		}
-
-		const int docs = i * numberOfDocuments;
-		for (int j = 0; j < numberOfDocuments && docs + j < testScores.size(); j++) {
-			const double testScore = testScores[docs + j];
-			if (std::abs(score[j] - testScore) > TEST_EQUALITY_THRESHOLD) {
-				std::string out = "Test failed at " + std::to_string(i) + "/" + std::to_string(docGroups.size()) +
-								  ": Mismatch: expecting " + std::to_string(testScore) + ", found " +
-								  std::to_string(score[j]) + "\n";
-				std::cout << out;
-				//exit(1);
-			}
+std::vector<std::shared_ptr<Testable>> testsForFold(unsigned int fold) {
+	std::vector<std::shared_ptr<Testable>> tests;
+	for (auto &test : TESTS) {
+		if (test->fold == fold) {
+			tests.push_back(test);
 		}
 	}
-	auto t2 = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-
-	std::cout << "Fold " << fold << " took " << duration / 1000000000.0 << "s (" << (duration / (docGroups.size() * numberOfDocuments)) << " ns)" << std::endl;
-	return duration;
+	return tests;
 }
 
 int main() {
 	std::cout.setf(std::ios::unitbuf);
 
-	unsigned long tot = 0;
-	for (int i = 1; i <= 1; i++) {
-		tot += testFold<SIMDRapidScorer>(i);
+	for (auto &fold : detectFolds()) {
+		std::cout << "TESTING FOLD " << fold << std::endl;
+
+		const auto tests = testsForFold(fold);
+
+		const unsigned long max_documents = std::max_element(tests.begin(), tests.end(), [](const std::shared_ptr<Testable> &t1, const std::shared_ptr<Testable> &t2) -> bool {
+			return t1->max_documents < t2->max_documents;
+		})->get()->max_documents;
+
+		const auto &trees = parseTrees(fold);
+		const auto &documents = parseDocuments(fold, max_documents);
+		const auto &testScores = parseScores(fold, max_documents);
+
+		assert(documents.size() == testScores.size());
+
+
+		for (auto &test : tests) {
+			test->test(trees, documents, testScores);
+		}
 	}
-	std::cout << "All took " << tot / 1000000000.0 << "s" << std::endl;
+
 	return 0;
 }
-/*
-int main() {
-	auto t1 = std::chrono::high_resolution_clock::now();
-
-	std::cout << "Starting parsing model.json" << std::endl;
-	auto filename = DOCUMENTS_ROOT + "/Fold" + std::to_string(2) + "/model.json";
-	FILE* fp = std::fopen(filename.c_str(), "rb"); // non-Windows use "r"
-
-	char readBuffer[65536];
-	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-	rapidjson::Document json;
-	json.ParseStream(is);
-	fclose(fp);
-
-	for(auto &c : json["tree_info"].GetArray()) {
-		auto &o = c["tree_structure"];
-		std::cout << "no";
-	}
-}*/

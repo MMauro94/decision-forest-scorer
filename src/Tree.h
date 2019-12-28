@@ -190,8 +190,8 @@ class Forest {
 		}
 
 		template <typename Scorer>
-		static std::vector<std::shared_ptr<Forest>> buildForests(const Config<Scorer> &config, std::vector<Tree> &trees) {
-			unsigned int threads = config.parallel_forests ? config.number_of_threads : 1;
+		static std::vector<std::shared_ptr<Forest>> buildForests(const Config<Scorer> &config, const std::vector<Tree> &trees) {
+			const unsigned int threads = config.parallel_forests ? config.number_of_threads : 1u;
 
 			std::vector<std::vector<Tree>> almostForests(threads);
 			for (unsigned long i = 0; i < trees.size(); i++) {
