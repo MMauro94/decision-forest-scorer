@@ -7,6 +7,7 @@
 #include "rapidscorer/SIMDRapidScorer.h"
 #include "rapidscorer/LinearizedRapidScorer.h"
 #include "TestCase.h"
+#include "SIMDInfo.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -121,7 +122,9 @@ std::vector<double> parseScores(const unsigned int fold, const unsigned long max
 #define FOLD 1
 
 const std::vector<std::shared_ptr<Testable>> TESTS = {
-		std::make_shared<TestCase<SIMDRapidScorer>>(Config<SIMDRapidScorer>::parallelDocuments(4), MAX_DOCUMENTS, FOLD)
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD256Info>>>(Config<SIMDRapidScorer<SIMD256Info>>::parallelDocuments(4), MAX_DOCUMENTS, FOLD),
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD512Info>>>(Config<SIMDRapidScorer<SIMD512Info>>::parallelDocuments(4), MAX_DOCUMENTS, FOLD),
+		std::make_shared<TestCase<LinearizedRapidScorer<uint16_t>>>(Config<LinearizedRapidScorer<uint16_t>>::parallelForest(4), MAX_DOCUMENTS, FOLD)
 };
 
 std::set<unsigned int> detectFolds() {

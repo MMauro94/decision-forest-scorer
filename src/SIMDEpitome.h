@@ -13,50 +13,50 @@
 #include <atomic>
 #include <deque>
 #include "Config.h"
+#include "Epitome.h"
 
-class SIMDEpitome {
-	private:
-		uint64_t firstBlock;
-		uint8_t firstBlockPosition;
-		uint64_t lastBlock;
-		uint8_t lastBlockPosition;
+template<typename SIMDInfo>
+class SIMDEpitome : public Epitome<typename SIMDInfo::base_type> {
 
-		static constexpr inline auto Bits = 64;
+		typedef typename SIMDInfo::type simd_type;
+		typedef typename SIMDInfo::base_type simd_base_type;
 
 	public:
+		SIMDEpitome(const SIMDEpitome<SIMDInfo> &other) = default;
 
-		SIMDEpitome(const SIMDEpitome &other) = default;
+		SIMDEpitome(unsigned int leftOnes, unsigned int middleZeroes) : Epitome<simd_base_type>(leftOnes, middleZeroes) {}
 
-		SIMDEpitome(unsigned int leftOnes, unsigned int middleZeroes) {
-			if (middleZeroes == 0) {
-				throw std::invalid_argument("middleZeroes == 0");
-			}
-			uint64_t one = 1u;
 
-			uint64_t fb = 0;
-			for (unsigned int i = 0; i < leftOnes % Bits; i++) {
-				fb |= one << (Bits - i - one);
-			}
-			this->firstBlockPosition = leftOnes / Bits;
+		void performAnd(
+				std::vector<simd_type> &results,
+				unsigned int treeIndex,
+				unsigned int masksPerTree,
+				__mmask8 mask
+		) const {
+			unsigned int start = treeIndex * masksPerTree;
 
-			uint64_t lb = 0;
-			if ((middleZeroes + leftOnes) % Bits > 0) {
-				for (unsigned int i = (middleZeroes + leftOnes) % Bits; i < Bits; i++) {
-					lb |= one << (Bits - i - one);
+			results[start + this->firstBlockPosition] = SIMDInfo::mask_and(
+					results[start + this->firstBlockPosition],
+					mask,
+					SIMDInfo::set1(this->firstBlock),
+					results[start + this->firstBlockPosition]
+			);
+
+			if (this->firstBlockPosition != this->lastBlockPosition) {
+				unsigned int end = start + this->lastBlockPosition;
+				for (unsigned int i = start + this->firstBlockPosition + 1u; i < end; i++) {
+					results[i] = SIMDInfo::mask_set1(results[i], mask, 0);
 				}
-			}
-			this->lastBlockPosition = (leftOnes + middleZeroes - one) / Bits;
 
-			if (this->firstBlockPosition == this->lastBlockPosition) {
-				fb |= lb;
-				lb = fb;
+				results[end] = SIMDInfo::mask_and(
+						results[end],
+						mask,
+						SIMDInfo::set1(this->lastBlock),
+						results[end]
+				);
 			}
 
-			this->firstBlock = fb;
-			this->lastBlock = lb;
 		}
-
-
 };
 
 

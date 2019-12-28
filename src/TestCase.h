@@ -59,14 +59,13 @@ class TestCase : public Testable {
 			for (int i = 0; i < total_groups; i++) {
 				const auto score = scorer.score(docGroups[i]);
 
-				const unsigned long done_documents = (i + 1) * documents_per_group;
+				/*const unsigned long done_documents = (i + 1) * documents_per_group;
 				if (done_documents % (documents_per_group * 100) == 0 || i == docGroups.size() - 1) {
-
 					auto t2 = std::chrono::high_resolution_clock::now();
 					auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
 					std::cout << "Done " << done_documents << " documents in " << duration / 1000000000.0 << "s (" << (duration / done_documents) << " ns)" << std::endl;
-				}
+				}*/
 
 				const unsigned long docs = i * documents_per_group;
 				for (unsigned long j = 0; j < documents_per_group && docs + j < testScores.size(); j++) {

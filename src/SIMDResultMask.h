@@ -14,35 +14,41 @@
 #include <strings.h>
 #include "Config.h"
 #include "Tree.h"
+#include "SIMDEpitome.h"
 
+template<typename SIMDInfo>
 class SIMDResultMask {
 	private:
+		typedef typename SIMDInfo::type simd_type;
+		typedef typename SIMDInfo::base_type simd_base_type;
+
 		std::shared_ptr<Forest> _forest;
 		unsigned int masksPerTree;
-		std::vector<__m512i> results;
+		std::vector<simd_type> results;
+
 
 	public:
 
 		explicit SIMDResultMask(std::shared_ptr<Forest> forest) :
 				_forest(std::move(forest)),
-				masksPerTree(this->_forest->maximumNumberOfLeafs() / 64 + 1) {
-			__m512i ones = _mm512_set1_epi64(-1);
+				masksPerTree(this->_forest->maximumNumberOfLeafs() / SIMDInfo::bits + 1) {
+			simd_type ones = SIMDInfo::set1(-1);
 			for (unsigned long i = 0; i < this->_forest->trees.size() * this->masksPerTree; i++) {
 				this->results.push_back(ones);
 			}
 		}
 
-		void applyMask(const Epitome<uint64_t> &epitome, const unsigned int treeIndex, __mmask8 mask) {
+		void applyMask(const SIMDEpitome<SIMDInfo> &epitome, const unsigned int treeIndex, __mmask8 mask) {
 			epitome.performAnd(this->results, treeIndex, this->masksPerTree, mask);
 		}
 
-		template <typename Scorer>
+		template<typename Scorer>
 		[[nodiscard]] std::vector<double> computeScore(const Config<Scorer> &config) const {
 			std::vector<double> scores(8, 0.0);
 #pragma omp parallel for num_threads(config.number_of_threads) if(config.parallel_score) default(none) shared(scores)
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
-				alignas(64) int64_t leafIndexes[8];
-				_mm512_store_epi64(leafIndexes, this->firstOne(i));
+				alignas(SIMDInfo::bits) simd_base_type leafIndexes[8];
+				SIMDInfo::store(leafIndexes, this->firstOne(i));
 				auto &tree = this->_forest->trees[i];
 				for (unsigned int j = 0; j < 8; j++) {
 					double s = tree.scoreByLeafIndex(leafIndexes[j]);
@@ -55,25 +61,20 @@ class SIMDResultMask {
 
 	private:
 
-		[[nodiscard]] __m512i firstOne(unsigned long treeIndex) const {
-			__mmask8 foundResults = 0xFF;
-			__m512i resultIndexes = _mm512_set1_epi64(0);
-			__m512i blockResult = _mm512_set1_epi64(0);
+		[[nodiscard]] simd_type firstOne(unsigned long tree_index) const {
+			__mmask8 found_results = 0xFF;
+			simd_type result_indexes = SIMDInfo::set1(0);
+			simd_type block_result = SIMDInfo::set1(0);
+			simd_type group_size = SIMDInfo::set1(SIMDInfo::bits);
 
-			__m512i sixtyfour = _mm512_set1_epi64(64);
-			unsigned long mult = this->masksPerTree * treeIndex;
-
-			unsigned long i = mult;
-			while (foundResults > 0) {
-				blockResult = _mm512_mask_mov_epi64(blockResult, foundResults, this->results[i]);
-				foundResults = _mm512_mask_cmp_epi64_mask(foundResults, this->results[i], _mm512_set1_epi64(0),
-														  _MM_CMPINT_EQ);
-				resultIndexes = _mm512_mask_add_epi64(resultIndexes, foundResults, resultIndexes, sixtyfour);
-				i++;
+			for (unsigned long i = this->masksPerTree * tree_index; found_results > 0; i++) {
+				block_result = SIMDInfo::mask_mov(block_result, found_results, this->results[i]);
+				found_results = SIMDInfo::mask_cmp_mask(found_results, this->results[i], SIMDInfo::set1(0), _MM_CMPINT_EQ);
+				result_indexes = SIMDInfo::mask_add(result_indexes, found_results, result_indexes, group_size);
 			}
 
-			blockResult = _mm512_lzcnt_epi64(blockResult);
-			return _mm512_add_epi64(blockResult, resultIndexes);;
+			block_result = SIMDInfo::lzcnt(block_result);
+			return SIMDInfo::add(block_result, result_indexes);
 		}
 
 };

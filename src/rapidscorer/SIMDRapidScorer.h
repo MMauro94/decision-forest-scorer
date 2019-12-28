@@ -10,14 +10,18 @@
 #include "../DocGroup.h"
 #include "../Epitome.h"
 #include "../Config.h"
+#include "../SIMDEpitome.h"
 
+template <typename SIMDInfo>
 class SIMDRapidScorer {
+
+		typedef typename SIMDInfo::base_type simd_base_type;
 
 		Config<SIMDRapidScorer> config;
 		std::shared_ptr<Forest> forest;
 		SIMDDoubleGroup featureThresholds;
 		std::vector<unsigned int> treeIndexes;
-		std::vector<Epitome<uint64_t>> epitomes;
+		std::vector<SIMDEpitome<SIMDInfo>> epitomes;
 		std::vector<unsigned int> offsets;
 
 		static void addNodes(std::vector<std::shared_ptr<InternalNode>> &ret, const std::shared_ptr<InternalNode> &node) {
@@ -67,7 +71,7 @@ class SIMDRapidScorer {
 		}
 
 		[[nodiscard]] std::vector<double> score(const DocGroup &documents) const {
-			SIMDResultMask result(this->forest);
+			SIMDResultMask<SIMDInfo> result(this->forest);
 
 			unsigned long max = this->offsets.size();
 #pragma omp parallel for num_threads(this->config.number_of_threads) if(this->config.parallel_mask) default(none) shared(result) shared(documents) shared(max)

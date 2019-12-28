@@ -6,8 +6,6 @@
 
 #include <ostream>
 
-class SIMDRapidScorer;
-
 template<typename Scorer>
 class Config {
 	public:
@@ -28,9 +26,6 @@ class Config {
 			parallel_forests(parallelForests),
 			parallel_documents(parallelDocuments),
 			number_of_threads(numberOfThreads) {
-			if (std::is_same<Scorer, SIMDRapidScorer>::value && parallelMask) {
-				throw std::invalid_argument("Unsupported SIMD + parallel mask");
-			}
 		}
 
 		friend std::ostream &operator<<(std::ostream &os, const Config &config) {
