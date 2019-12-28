@@ -12,7 +12,7 @@
 #include <deque>
 #include <atomic>
 #include <strings.h>
-#include "config.h"
+#include "Config.h"
 #include "Tree.h"
 
 class SIMDResultMask {
@@ -36,16 +36,17 @@ class SIMDResultMask {
 			epitome.performAnd(this->results, treeIndex, this->masksPerTree, mask);
 		}
 
-		[[nodiscard]] std::vector<double> computeScore() const {
+		template <typename Scorer>
+		[[nodiscard]] std::vector<double> computeScore(const Config<Scorer> &config) const {
 			std::vector<double> scores(8, 0.0);
-#pragma omp parallel for num_threads(NUMBER_OF_THREADS) if(PARALLEL_SCORE) default(none) shared(scores)
+#pragma omp parallel for num_threads(config.number_of_threads) if(config.parallel_score) default(none) shared(scores)
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
 				alignas(64) int64_t leafIndexes[8];
 				_mm512_store_epi64(leafIndexes, this->firstOne(i));
 				auto &tree = this->_forest->trees[i];
 				for (unsigned int j = 0; j < 8; j++) {
 					double s = tree.scoreByLeafIndex(leafIndexes[j]);
-#pragma omp atomic
+#pragma omp atomic update
 					scores[j] += s;
 				}
 			}

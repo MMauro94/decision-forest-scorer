@@ -11,7 +11,8 @@
 #include <vector>
 #include <atomic>
 #include <deque>
-#include "config.h"
+#include <immintrin.h>
+#include "Config.h"
 
 template<typename Block>
 class Epitome {
@@ -53,27 +54,28 @@ class Epitome {
 			}
 		}
 
-		void performAnd(std::vector<MaskType> &results, unsigned int treeIndex, unsigned int masksPerTree) const {
+		void performAnd(std::vector<Block> &results, unsigned int treeIndex, unsigned int masksPerTree) const {
 			unsigned int start = treeIndex * masksPerTree;
-
+#pragma omp atomic update
 			results[start + this->firstBlockPosition] &= this->firstBlock;
 			if (this->firstBlockPosition != this->lastBlockPosition) {
 				unsigned int end = start + this->lastBlockPosition;
 				for (unsigned int i = start + this->firstBlockPosition + 1u; i < end; i++) {
+#pragma omp atomic write
 					results[i] = 0;
 				}
+#pragma omp atomic update
 				results[end] &= this->lastBlock;
 			}
 		}
 
-		typename::std::enable_if<Bits == 64, void> performAnd(
+		typename ::std::enable_if<Bits == 64, void> performAnd(
 				std::vector<__m512i> &results,
 				unsigned int treeIndex,
 				unsigned int masksPerTree,
 				__mmask8 mask
 		) const {
 			unsigned int start = treeIndex * masksPerTree;
-
 
 			results[start + this->firstBlockPosition] = _mm512_mask_and_epi64(
 					results[start + this->firstBlockPosition],
@@ -85,9 +87,9 @@ class Epitome {
 			if (this->firstBlockPosition != this->lastBlockPosition) {
 				unsigned int end = start + this->lastBlockPosition;
 				for (unsigned int i = start + this->firstBlockPosition + 1u; i < end; i++) {
-					//TODO trovare un modo meglio
-					results[i] = _mm512_mask_and_epi64(results[i], mask, _mm512_set1_epi64(0), results[i]);
+					results[i] = _mm512_mask_set1_epi64(results[i], mask, 0);
 				}
+
 				results[end] = _mm512_mask_and_epi64(
 						results[end],
 						mask,

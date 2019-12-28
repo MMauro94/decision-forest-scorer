@@ -6,7 +6,7 @@
 #include <vector>
 #include <thread>
 #include <algorithm>
-#include "config.h"
+#include "Config.h"
 
 class InternalNode;
 
@@ -189,17 +189,16 @@ class Forest {
 			this->computeMaximumNumberOfLeafs();
 		}
 
-		static std::vector<std::shared_ptr<Forest>> buildForests(std::vector<Tree> &trees) {
-#if PARALLEL_FORESTS
-			unsigned int threads = NUMBER_OF_THREADS;
-#else
-			unsigned int threads = 1;
-#endif
+		template <typename Scorer>
+		static std::vector<std::shared_ptr<Forest>> buildForests(const Config<Scorer> &config, std::vector<Tree> &trees) {
+			unsigned int threads = config.parallel_forests ? config.number_of_threads : 1;
+
 			std::vector<std::vector<Tree>> almostForests(threads);
 			for (unsigned long i = 0; i < trees.size(); i++) {
 				almostForests[i % threads].push_back(trees[i]);
 			}
 			std::vector<std::shared_ptr<Forest>> ret;
+			ret.reserve(almostForests.size());
 			for (auto &f : almostForests) {
 				ret.push_back(std::make_shared<Forest>(f));
 			}

@@ -5,6 +5,7 @@
 #include "rapidjson/filereadstream.h"
 #include "SIMDDoubleGroup.h"
 #include "rapidscorer/SIMDRapidScorer.h"
+#include "rapidscorer/LinearizedRapidScorer.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -37,7 +38,7 @@ Tree parseTree(const GheSboro &json) {
 	return Tree(std::dynamic_pointer_cast<InternalNode>(root));
 }
 
-std::vector<std::shared_ptr<Forest>> parseForests(const int fold) {
+std::vector<Tree> parseTrees(const int fold) {
 	auto t1 = std::chrono::high_resolution_clock::now();
 
 	std::cout << "Starting parsing model.json" << std::endl;
@@ -64,11 +65,7 @@ std::vector<std::shared_ptr<Forest>> parseForests(const int fold) {
 	duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t3 - t2).count();
 	std::cout << "Trees parsed, took " << duration / 1000000000.0 << "s" << std::endl;
 
-	std::cout << "Building forests...";
-	const auto &vector = Forest::buildForests(trees);
-	std::cout << "OK" << std::endl;
-
-	return vector;
+	return trees;
 }
 
 std::vector<double> parseDocumentLine(const std::string &line) {
@@ -114,10 +111,22 @@ std::vector<double> parseScores(const int fold, const int max = -1) {
 
 template<class RapidScorer>
 long testFold(const int fold) {
+	Config<RapidScorer> config(
+			false,
+			false,
+			false,
+			false,
+			8
+	);
 
 	const int max = 10000;
 
-	auto f = parseForests(fold);
+	auto trees = parseTrees(fold);
+
+	std::cout << "Building forests...";
+	const auto &f = Forest::buildForests(config, trees);
+	std::cout << "OK" << std::endl;
+
 
 	std::cout << "Parsing documents...";
 	const auto &doc = parseDocuments(fold, max);
@@ -130,8 +139,7 @@ long testFold(const int fold) {
 	assert(doc.size() == testScores.size());
 	std::cout << "OK" << std::endl;
 
-
-	RapidScorers<RapidScorer> scorer(f);
+	RapidScorers<RapidScorer> scorer(config, f);
 	std::cout << "Starting scoring..." << std::endl;
 	const int numberOfDocuments = RapidScorer::DocGroup::numberOfDocuments();
 
@@ -158,7 +166,7 @@ long testFold(const int fold) {
 								  ": Mismatch: expecting " + std::to_string(testScore) + ", found " +
 								  std::to_string(score[j]) + "\n";
 				std::cout << out;
-				exit(1);
+				//exit(1);
 			}
 		}
 	}

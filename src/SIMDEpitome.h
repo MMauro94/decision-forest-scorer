@@ -12,7 +12,7 @@
 #include <vector>
 #include <atomic>
 #include <deque>
-#include "config.h"
+#include "Config.h"
 
 class SIMDEpitome {
 	private:

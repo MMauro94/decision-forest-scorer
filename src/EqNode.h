@@ -8,36 +8,37 @@
 #include "Tree.h"
 #include "Epitome.h"
 
+template <typename Block>
 class EqNode {
 
 	public:
 		unsigned int featureIndex;
 		double featureThreshold;
 		unsigned int treeIndex;
-		Epitome<BLOCK> epitome;
+		Epitome<Block> epitome;
 
-		EqNode(const std::shared_ptr<InternalNode> &node, const Epitome<BLOCK> &epitome) : featureIndex(node->splittingFeatureIndex),
+		EqNode(const std::shared_ptr<InternalNode> &node, const Epitome<Block> &epitome) : featureIndex(node->splittingFeatureIndex),
 																						   featureThreshold(
 																					  node->splittingThreshold),
 																						   treeIndex(node->getTreeIndex()),
 																						   epitome(epitome) {
 		}
 
-		bool operator<(const EqNode &rhs) const {
+		bool operator<(const EqNode<Block> &rhs) const {
 			if (featureIndex < rhs.featureIndex) return true;
 			else if (featureIndex > rhs.featureIndex) return false;
 			else return featureThreshold < rhs.featureThreshold;
 		}
 
-		bool operator>(const EqNode &rhs) const {
+		bool operator>(const EqNode<Block> &rhs) const {
 			return rhs < *this;
 		}
 
-		bool operator<=(const EqNode &rhs) const {
+		bool operator<=(const EqNode<Block> &rhs) const {
 			return !(rhs < *this);
 		}
 
-		bool operator>=(const EqNode &rhs) const {
+		bool operator>=(const EqNode<Block> &rhs) const {
 			return !(*this < rhs);
 		}
 };

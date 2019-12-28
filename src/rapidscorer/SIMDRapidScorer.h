@@ -8,8 +8,12 @@
 #include "../SIMDDoubleGroup.h"
 #include "../SIMDResultMask.h"
 #include "../DocGroup.h"
+#include "../Epitome.h"
+#include "../Config.h"
 
 class SIMDRapidScorer {
+
+		Config<SIMDRapidScorer> config;
 		std::shared_ptr<Forest> forest;
 		SIMDDoubleGroup featureThresholds;
 		std::vector<unsigned int> treeIndexes;
@@ -39,7 +43,7 @@ class SIMDRapidScorer {
 	public:
 		typedef SIMDDocumentGroup DocGroup;
 
-		explicit SIMDRapidScorer(std::shared_ptr<Forest> forest) : forest(std::move(forest)) {
+		explicit SIMDRapidScorer(const Config<SIMDRapidScorer> &config, std::shared_ptr<Forest> forest) : config(config), forest(std::move(forest)) {
 			std::vector<std::shared_ptr<InternalNode>> nodes;
 			for (auto &tree : this->forest->trees) {
 				addNodes(nodes, tree.root);
@@ -66,7 +70,7 @@ class SIMDRapidScorer {
 			SIMDResultMask result(this->forest);
 
 			unsigned long max = this->offsets.size();
-#pragma omp parallel for num_threads(NUMBER_OF_THREADS) if(PARALLEL_MASK) default(none) shared(result) shared(documents) shared(max)
+#pragma omp parallel for num_threads(this->config.number_of_threads) if(this->config.parallel_mask) default(none) shared(result) shared(documents) shared(max)
 			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
 				__m512d value = documents.get(featureIndex);
 				unsigned int start = this->offsets[featureIndex];
@@ -85,7 +89,7 @@ class SIMDRapidScorer {
 				}
 			}
 
-			return result.computeScore();
+			return result.computeScore(this->config);
 		}
 };
 

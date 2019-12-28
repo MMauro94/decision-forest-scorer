@@ -13,7 +13,7 @@ add_executable(forest_tree_evaluator
         src/Tree.h
         src/Epitome.h
         src/ResultMask.h
-        src/config.h
+        src/Config.h
         src/EqNode.h
         src/rapidscorer/RapidScorers.h
         src/rapidscorer/EqNodesRapidScorer.h
