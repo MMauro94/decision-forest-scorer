@@ -11,6 +11,7 @@
 #include <deque>
 #include <atomic>
 #include <strings.h>
+#include <immintrin.h>
 #include "Config.h"
 #include "Tree.h"
 #include "Epitome.h"

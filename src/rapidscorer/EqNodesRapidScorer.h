@@ -49,7 +49,7 @@ class EqNodesRapidScorer {
 		}
 
 		[[nodiscard]] std::vector<double> score(const DocGroup &document) const {
-			ResultMask result(this->forest);
+			ResultMask<Block> result(this->forest);
 
 			unsigned long max = this->offsets.size();
 #pragma omp parallel for num_threads(this->config.number_of_threads) if(this->config.parallel_mask) default(none) shared(result) shared(document) shared(max)

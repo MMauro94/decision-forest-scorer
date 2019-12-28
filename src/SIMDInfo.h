@@ -96,5 +96,4 @@ class SIMD256Info {
 		}
 };
 
-
 #endif //FOREST_TREE_EVALUATOR_SIMDINFO_H

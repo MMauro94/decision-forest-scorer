@@ -1,0 +1,161 @@
+/home/hpc/hpc/cmake-build-debug/forest_tree_evaluator
+Total tests: 130
+TESTING FOLD 1
+Starting parsing model.json
+model.json parsed, parsing trees, took 10.1671s
+Trees parsed, took 1.87747s
+Parsing documents... OK
+Parsing scores...OK
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 0 parallel_score: 0 parallel_forests: 0 parallel_documents: 0 number_of_threads: 1
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 150.296s (15029629 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 1 parallel_score: 1 parallel_forests: 0 parallel_documents: 0 number_of_threads: 2
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 176.522s (17652232 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 1 parallel_score: 1 parallel_forests: 0 parallel_documents: 0 number_of_threads: 4
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 201.013s (20101255 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 1 parallel_score: 1 parallel_forests: 0 parallel_documents: 0 number_of_threads: 8
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 189.336s (18933571 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 1 parallel_score: 1 parallel_forests: 0 parallel_documents: 0 number_of_threads: 16
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 223.306s (22330610 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 0 parallel_score: 0 parallel_forests: 0 parallel_documents: 1 number_of_threads: 2
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 76.7096s (7670964 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 0 parallel_score: 0 parallel_forests: 0 parallel_documents: 1 number_of_threads: 4
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 80.6458s (8064582 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 0 parallel_score: 0 parallel_forests: 0 parallel_documents: 1 number_of_threads: 8
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 81.4118s (8141183 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 0 parallel_score: 0 parallel_forests: 0 parallel_documents: 1 number_of_threads: 16
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 87.0958s (8709578 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 0 parallel_score: 0 parallel_forests: 1 parallel_documents: 0 number_of_threads: 2
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 78.4621s (7846205 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 0 parallel_score: 0 parallel_forests: 1 parallel_documents: 0 number_of_threads: 4
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 69.8462s (6984616 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 0 parallel_score: 0 parallel_forests: 1 parallel_documents: 0 number_of_threads: 8
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 77.7891s (7778912 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerIhE parallel_mask: 0 parallel_score: 0 parallel_forests: 1 parallel_documents: 0 number_of_threads: 16
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 85.0778s (8507782 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerItE parallel_mask: 0 parallel_score: 0 parallel_forests: 0 parallel_documents: 0 number_of_threads: 1
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 141.148s (14114801 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerItE parallel_mask: 1 parallel_score: 1 parallel_forests: 0 parallel_documents: 0 number_of_threads: 2
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 155.444s (15544373 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerItE parallel_mask: 1 parallel_score: 1 parallel_forests: 0 parallel_documents: 0 number_of_threads: 4
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 159.562s (15956195 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerItE parallel_mask: 1 parallel_score: 1 parallel_forests: 0 parallel_documents: 0 number_of_threads: 8
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 169.231s (16923093 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerItE parallel_mask: 1 parallel_score: 1 parallel_forests: 0 parallel_documents: 0 number_of_threads: 16
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+END TEST!  Took 178.658s (17865792 ns)
+
+STARTING TEST (max_documents=10000)
+Config: scorer: 21LinearizedRapidScorerItE parallel_mask: 0 parallel_score: 0 parallel_forests: 0 parallel_documents: 1 number_of_threads: 2
+Building forests...OK
+Grouping documents...OK
+Creating scorer...OK
+Starting scoring...
+
+Process finished with exit code -1
