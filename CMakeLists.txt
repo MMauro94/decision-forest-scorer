@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 project(forest_tree_evaluator)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "-O3 -mavx512vl -mavx512cd -mavx512f -mavx512bw")
+set(CMAKE_CXX_FLAGS "-O3 -mavx512vl -mavx512cd -mavx512f -mavx512bw -mlzcnt")
+#set(CMAKE_CXX_FLAGS "-O3 -march=native")
 
 file(GLOB json_files
         "src/rapidjson/*.h"
@@ -18,7 +19,9 @@ add_executable(forest_tree_evaluator
         src/rapidscorer/RapidScorers.h
         src/rapidscorer/EqNodesRapidScorer.h
         src/rapidscorer/LinearizedRapidScorer.h
+        src/rapidscorer/MergedRapidScorer.h
         src/rapidscorer/SIMDRapidScorer.h
+        src/rapidscorer/SIMDRapidScorer2.h
         src/main.cpp
         #tests/epitome_test.cpp
         ${json_files}
@@ -27,7 +30,6 @@ add_executable(forest_tree_evaluator
         src/DocGroup.h
         src/TestCase.h
         src/SIMDInfo.h
-        src/SIMDEpitome.h
         )
 
 

@@ -17,14 +17,14 @@
 template<typename Block>
 class Epitome {
 	protected:
+		static constexpr inline auto Bits = sizeof(Block) * 8;
+	public:
 		Block firstBlock;
 		uint8_t firstBlockPosition;
 		Block lastBlock;
 		uint8_t lastBlockPosition;
 
-		static constexpr inline auto Bits = sizeof(Block) * 8;
 
-	public:
 
 		Epitome(const Epitome &other) = default;
 
@@ -51,21 +51,6 @@ class Epitome {
 			if (this->firstBlockPosition == this->lastBlockPosition) {
 				this->firstBlock |= this->lastBlock;
 				this->lastBlock = this->firstBlock;
-			}
-		}
-
-		void performAnd(std::vector<Block> &results, unsigned int treeIndex, unsigned int masksPerTree) const {
-			unsigned int start = treeIndex * masksPerTree;
-#pragma omp atomic update
-			results[start + this->firstBlockPosition] &= this->firstBlock;
-			if (this->firstBlockPosition != this->lastBlockPosition) {
-				unsigned int end = start + this->lastBlockPosition;
-				for (unsigned int i = start + this->firstBlockPosition + 1u; i < end; i++) {
-#pragma omp atomic write
-					results[i] = 0;
-				}
-#pragma omp atomic update
-				results[end] &= this->lastBlock;
 			}
 		}
 

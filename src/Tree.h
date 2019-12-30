@@ -29,6 +29,8 @@ class Node {
 		[[nodiscard]] virtual int countLeafsUntil(const std::shared_ptr<InternalNode> &node, bool *found) const = 0;
 
 		virtual void fillLeafScores(std::vector<double> &leafScores) const = 0;
+
+		[[nodiscard]] virtual unsigned int maxFeatureIndex() const = 0;
 };
 
 class InternalNode : public Node {
@@ -58,23 +60,17 @@ class InternalNode : public Node {
 			return this->leftNode->numberOfLeafs() + this->rightNode->numberOfLeafs();
 		}
 
-		void fillNodesByFeature(std::vector<std::vector<std::shared_ptr<InternalNode>>> &nodes) const {
-			auto leftAsInternalNode = std::dynamic_pointer_cast<InternalNode>(this->leftNode);
-			auto rightAsInternalNode = std::dynamic_pointer_cast<InternalNode>(this->rightNode);
-			if (leftAsInternalNode != nullptr) {
-				nodes[leftAsInternalNode->splittingFeatureIndex].push_back(leftAsInternalNode);
-				leftAsInternalNode->fillNodesByFeature(nodes);
-			}
-			if (rightAsInternalNode != nullptr) {
-				nodes[rightAsInternalNode->splittingFeatureIndex].push_back(rightAsInternalNode);
-				rightAsInternalNode->fillNodesByFeature(nodes);
-			}
-		}
-
 		void setTreeIndex(int treeIndex) override {
 			Node::setTreeIndex(treeIndex);
 			this->leftNode->setTreeIndex(treeIndex);
 			this->rightNode->setTreeIndex(treeIndex);
+		}
+
+		[[nodiscard]] unsigned int maxFeatureIndex() const override {
+			unsigned int ret = this->splittingFeatureIndex;
+			ret = std::max(ret, this->leftNode->maxFeatureIndex());
+			ret = std::max(ret, this->rightNode->maxFeatureIndex());
+			return ret;
 		}
 
 		[[nodiscard]] int countLeafsUntil(const std::shared_ptr<InternalNode> &node, bool *found) const override {
@@ -117,6 +113,10 @@ class Leaf : public Node {
 		void fillLeafScores(std::vector<double> &leafScores) const override {
 			leafScores.push_back(this->_score);
 		}
+
+		[[nodiscard]] unsigned int maxFeatureIndex() const override {
+			return 0;
+		}
 };
 
 class Tree {
@@ -140,9 +140,8 @@ class Tree {
 			return this->leafsCount;
 		}
 
-		void fillNodesByFeature(std::vector<std::vector<std::shared_ptr<InternalNode>>> &nodes) const {
-			nodes[this->root->splittingFeatureIndex].push_back(this->root);
-			this->root->fillNodesByFeature(nodes);
+		[[nodiscard]] unsigned int maxFeatureIndex() const {
+			return this->root->maxFeatureIndex();
 		}
 
 		[[nodiscard]] unsigned int getTreeIndex() const {
@@ -189,7 +188,7 @@ class Forest {
 			this->computeMaximumNumberOfLeafs();
 		}
 
-		template <typename Scorer>
+		template<typename Scorer>
 		static std::vector<std::shared_ptr<Forest>> buildForests(const Config<Scorer> &config, const std::vector<Tree> &trees) {
 			const unsigned int threads = config.parallel_forests ? config.number_of_threads : 1u;
 
@@ -205,6 +204,14 @@ class Forest {
 			return ret;
 		}
 
+		unsigned int maximumFeatureIndex() {
+			unsigned int maxFeatureIndex = 0;
+			for (auto &tree : this->trees) {
+				maxFeatureIndex = std::max(maxFeatureIndex, tree.maxFeatureIndex());
+			}
+			return maxFeatureIndex;
+		}
+
 		[[nodiscard]] unsigned int maximumNumberOfLeafs() const {
 			return this->_maximumNumberOfLeafs;
 		}
@@ -215,18 +222,6 @@ class Forest {
 				score += tree.score(element);
 			}
 			return score;
-		}
-
-		[[nodiscard]] std::vector<std::vector<std::shared_ptr<InternalNode>>>
-		getNodesByFeature(int numberOfFeatures) const {
-			auto nodes = std::vector<std::vector<std::shared_ptr<InternalNode>>>();
-			for (int i = 0; i < numberOfFeatures; i++) {
-				nodes.emplace_back();
-			}
-			for (auto &t:this->trees) {
-				t.fillNodesByFeature(nodes);
-			}
-			return nodes;
 		}
 };
 

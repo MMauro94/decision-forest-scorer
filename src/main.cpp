@@ -1,19 +1,14 @@
 #include <iostream>
 #include "Tree.h"
-#include "rapidscorer/RapidScorers.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
-#include "SIMDDoubleGroup.h"
 #include "rapidscorer/SIMDRapidScorer.h"
-#include "rapidscorer/LinearizedRapidScorer.h"
 #include "TestCase.h"
 #include "SIMDInfo.h"
-#include "rapidscorer/EqNodesRapidScorer.h"
-#include <iostream>
+#include "rapidscorer/MergedRapidScorer.h"
+#include "rapidscorer/SIMDRapidScorer2.h"
 #include <fstream>
 #include <sstream>
-#include <omp.h>
-#include <map>
 #include <set>
 
 std::string DOCUMENTS_ROOT = "documents";
@@ -119,7 +114,7 @@ std::vector<double> parseScores(const unsigned int fold, const unsigned long max
 	return ret;
 }
 
-#define MAX_DOCUMENTS 10000
+#define MAX_DOCUMENTS 1000
 #define FOLD 1
 
 template<typename Scorer>
@@ -153,7 +148,27 @@ std::vector<T> flatten(const std::vector<std::vector<T>> &vector) {
 	return ret;
 }
 
-const auto TESTS = flatten<std::shared_ptr<Testable>>({
+const std::vector<std::shared_ptr<Testable>> TESTS = {
+		std::make_shared<TestCase<MergedRapidScorer<uint32_t>>>(Config<MergedRapidScorer<uint32_t>>::serial(), MAX_DOCUMENTS, FOLD),//17.5271ms
+		std::make_shared<TestCase<SIMDRapidScorer2<SIMD256Info>>>(Config<SIMDRapidScorer2<SIMD256Info>>::serial(), MAX_DOCUMENTS, FOLD),//2.59537ms
+		std::make_shared<TestCase<SIMDRapidScorer2<SIMD512Info>>>(Config<SIMDRapidScorer2<SIMD512Info>>::serial(), MAX_DOCUMENTS, FOLD),//3.04721ms
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD256Info>>>(Config<SIMDRapidScorer<SIMD256Info>>::serial(), MAX_DOCUMENTS, FOLD),//5.07625ms
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD512Info>>>(Config<SIMDRapidScorer<SIMD512Info>>::serial(), MAX_DOCUMENTS, FOLD),//5.44284ms
+
+		/*std::make_shared<TestCase<MergedRapidScorer<uint64_t>>>(Config<MergedRapidScorer<uint64_t>>::serial(), MAX_DOCUMENTS, FOLD),//
+		std::make_shared<TestCase<LinearizedRapidScorer<uint64_t>>>(Config<LinearizedRapidScorer<uint64_t>>::serial(), MAX_DOCUMENTS, FOLD),//
+
+		std::make_shared<TestCase<LinearizedRapidScorer<uint32_t>>>(Config<LinearizedRapidScorer<uint32_t>>::serial(), MAX_DOCUMENTS, FOLD),//
+
+		std::make_shared<TestCase<MergedRapidScorer<uint16_t>>>(Config<MergedRapidScorer<uint16_t>>::serial(), MAX_DOCUMENTS, FOLD),//
+		std::make_shared<TestCase<LinearizedRapidScorer<uint16_t>>>(Config<LinearizedRapidScorer<uint16_t>>::serial(), MAX_DOCUMENTS, FOLD),//
+
+		std::make_shared<TestCase<MergedRapidScorer<uint8_t>>>(Config<MergedRapidScorer<uint8_t>>::serial(), MAX_DOCUMENTS, FOLD),//
+		std::make_shared<TestCase<LinearizedRapidScorer<uint8_t>>>(Config<LinearizedRapidScorer<uint8_t>>::serial(), MAX_DOCUMENTS, FOLD),//
+		 */
+};
+/*
+const auto TESTS1 = flatten<std::shared_ptr<Testable>>({
 		generateTestsParallelisms<LinearizedRapidScorer<uint8_t>>(),
 		generateTestsParallelisms<LinearizedRapidScorer<uint16_t>>(),
 		generateTestsParallelisms<LinearizedRapidScorer<uint32_t>>(),
@@ -167,7 +182,7 @@ const auto TESTS = flatten<std::shared_ptr<Testable>>({
 		generateTestsParallelisms<SIMDRapidScorer<SIMD256Info>>(),
 		generateTestsParallelisms<SIMDRapidScorer<SIMD512Info>>()
 });
-
+*/
 
 std::set<unsigned int> detectFolds() {
 	std::set<unsigned int> folds;

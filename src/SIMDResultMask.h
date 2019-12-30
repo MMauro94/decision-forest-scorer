@@ -14,7 +14,7 @@
 #include <strings.h>
 #include "Config.h"
 #include "Tree.h"
-#include "SIMDEpitome.h"
+#include "Epitome.h"
 
 template<typename SIMDInfo>
 class SIMDResultMask {
@@ -38,8 +38,33 @@ class SIMDResultMask {
 			}
 		}
 
-		void applyMask(const SIMDEpitome<SIMDInfo> &epitome, const unsigned int treeIndex, __mmask8 mask) {
-			epitome.performAnd(this->results, treeIndex, this->masksPerTree, mask);
+		void applyMask(const Epitome<simd_base_type> &epitome, const unsigned int treeIndex, __mmask8 mask) {
+			this->applyMask(epitome.firstBlock, epitome.firstBlockPosition, epitome.lastBlock, epitome.lastBlockPosition, treeIndex, mask);
+		}
+
+		void applyMask(simd_base_type firstBlock, u_int8_t firstBlockPosition, simd_base_type lastBlock, u_int8_t lastBlockPosition, const unsigned int treeIndex, __mmask8 mask) {
+			unsigned int start = treeIndex * this->masksPerTree;
+
+			this->results[start + firstBlockPosition] = SIMDInfo::mask_and(
+					this->results[start + firstBlockPosition],
+					mask,
+					SIMDInfo::set1(firstBlock),
+					this->results[start + firstBlockPosition]
+			);
+
+			if (firstBlockPosition != lastBlockPosition) {
+				unsigned int end = start + lastBlockPosition;
+				for (unsigned int i = start + firstBlockPosition + 1u; i < end; i++) {
+					this->results[i] = SIMDInfo::mask_set1(this->results[i], mask, 0);
+				}
+
+				this->results[end] = SIMDInfo::mask_and(
+						this->results[end],
+						mask,
+						SIMDInfo::set1(lastBlock),
+						this->results[end]
+				);
+			}
 		}
 
 		template<typename Scorer>
@@ -69,7 +94,7 @@ class SIMDResultMask {
 
 			for (unsigned long i = this->masksPerTree * tree_index; found_results > 0; i++) {
 				block_result = SIMDInfo::mask_mov(block_result, found_results, this->results[i]);
-				found_results = SIMDInfo::mask_cmp_mask(found_results, this->results[i], SIMDInfo::set1(0), _MM_CMPINT_EQ);
+				found_results = SIMDInfo::mask_eq(found_results, this->results[i], SIMDInfo::set1(0));
 				result_indexes = SIMDInfo::mask_add(result_indexes, found_results, result_indexes, group_size);
 			}
 

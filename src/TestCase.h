@@ -47,8 +47,11 @@ class TestCase : public Testable {
 
 
 			std::cout << "Creating scorer...";
+			auto t0 = std::chrono::high_resolution_clock::now();
 			RapidScorers<Scorer> scorer(config, f);
-			std::cout << "OK" << std::endl;
+			auto tScorer = std::chrono::high_resolution_clock::now();
+			auto scorerDuration = std::chrono::duration_cast<std::chrono::nanoseconds>(tScorer - t0).count();
+			std::cout << "OK. Took " << scorerDuration / 1000000000.0 << "s (" << scorerDuration << " ns)" << std::endl;
 
 			std::cout << "Starting scoring..." << std::endl;
 			const unsigned long documents_per_group = Scorer::DocGroup::numberOfDocuments();
@@ -82,7 +85,7 @@ class TestCase : public Testable {
 			auto t2 = std::chrono::high_resolution_clock::now();
 			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
 
-			std::cout << "END TEST! " << " Took " << duration / 1000000000.0 << "s (" << (duration / (total_groups * documents_per_group)) << " ns)" << std::endl;
+			std::cout << "END TEST! " << " Took " << duration / 1000000000.0 << "s (" << (duration / (total_groups * documents_per_group)) << " ns per document)" << std::endl;
 			return duration;
 		}
 

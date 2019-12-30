@@ -15,8 +15,9 @@
 #include "Config.h"
 #include "Tree.h"
 #include "Epitome.h"
+#include <immintrin.h>
 
-template <typename Block>
+template<typename Block>
 class ResultMask {
 	private:
 		std::shared_ptr<Forest> _forest;
@@ -33,10 +34,25 @@ class ResultMask {
 				results(this->_forest->trees.size() * this->masksPerTree, -1) {}
 
 		void applyMask(const Epitome<Block> &epitome, const unsigned int treeIndex) {
-			epitome.performAnd(this->results, treeIndex, this->masksPerTree);
+			applyMask(epitome.firstBlock, epitome.firstBlockPosition, epitome.lastBlock, epitome.lastBlockPosition, treeIndex);
 		}
 
-		template <typename Scorer>
+		void applyMask(Block firstBlock, uint8_t firstBlockPosition, Block lastBlock, uint8_t lastBlockPosition, const unsigned int treeIndex) {
+			unsigned int start = treeIndex * masksPerTree;
+#pragma omp atomic update
+			this->results[start + firstBlockPosition] &= firstBlock;
+			if (firstBlockPosition != lastBlockPosition) {
+				unsigned int end = start + lastBlockPosition;
+				for (unsigned int i = start + firstBlockPosition + 1u; i < end; i++) {
+#pragma omp atomic write
+					this->results[i] = 0;
+				}
+#pragma omp atomic update
+				this->results[end] &= lastBlock;
+			}
+		}
+
+		template<typename Scorer>
 		[[nodiscard]] double computeScore(const Config<Scorer> &config) const {
 			double score = 0.0;
 #pragma omp parallel for num_threads(config.number_of_threads) if(config.parallel_score) default(none) reduction(+:score)
@@ -51,21 +67,31 @@ class ResultMask {
 	private:
 
 		[[nodiscard]] unsigned long firstOne(unsigned long treeIndex) const {
-			unsigned long mult = this->masksPerTree * treeIndex;
+			unsigned long baseIndex = this->masksPerTree * treeIndex;
 
 			unsigned long i = 0;
-			while (this->results[mult + i] == 0) {
+			while (this->results[baseIndex + i] == 0) {
 				i++;
 			}
-			auto mask = this->results[mult + i];
+			auto firstNonZeroBlock = this->results[baseIndex + i];
 
+			if (MaskSize == 64) {
+				return i * MaskSize + _lzcnt_u64(firstNonZeroBlock);
+			} else if (MaskSize == 32) {
+				return i * MaskSize + _lzcnt_u32(firstNonZeroBlock);
+			} else if (MaskSize < 32) {
+				return i * MaskSize + _lzcnt_u32((uint32_t) firstNonZeroBlock) + MaskSize - 32;
+			} else if (MaskSize < 64) {
+				return i * MaskSize + _lzcnt_u64((uint64_t) firstNonZeroBlock) + MaskSize - 64;
+			} else {
+				unsigned int j = 0;
+				for (; j < MaskSize; j++) {
+					if ((firstNonZeroBlock >> (MaskSize - 1 - j)) % 2 == 1) { break; }
+				}
 
-			unsigned int j = 0;
-			for (; j < MaskSize; j++) {
-				if ((mask >> (MaskSize - 1 - j)) % 2 == 1) break;
+				return i * MaskSize + j;
+
 			}
-
-			return i * MaskSize + j;
 		}
 
 };

@@ -6,22 +6,20 @@
 #include <immintrin.h>
 #include "../Tree.h"
 #include "../SIMDDoubleGroup.h"
-#include "../SIMDResultMask.h"
 #include "../DocGroup.h"
 #include "../Epitome.h"
 #include "../Config.h"
-#include "../SIMDEpitome.h"
+#include "../SIMDResultMask.h"
 
 template <typename SIMDInfo>
 class SIMDRapidScorer {
-
 		typedef typename SIMDInfo::base_type simd_base_type;
 
 		Config<SIMDRapidScorer> config;
 		std::shared_ptr<Forest> forest;
-		SIMDDoubleGroup featureThresholds;
+		SIMDDoubleGroup featureThresholds;//TODO: salvare normalmente e fare set1 al bisogno?
 		std::vector<unsigned int> treeIndexes;
-		std::vector<SIMDEpitome<SIMDInfo>> epitomes;
+		std::vector<Epitome<simd_base_type>> epitomes;
 		std::vector<unsigned int> offsets;
 
 		static void addNodes(std::vector<std::shared_ptr<InternalNode>> &ret, const std::shared_ptr<InternalNode> &node) {

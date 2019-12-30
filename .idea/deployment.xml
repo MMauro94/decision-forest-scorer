@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData">
+  <component name="PublishConfigData" serverName="AWS (b1dd9c78-d034-4871-9a1b-7e7fc5b9b13f)">
     <serverData>
-      <paths name="AZURE FRANCESCO BENVENUTO (bbcf2ac6-a11d-4ecf-8ed3-027d81456e2f)">
+      <paths name="AWS (b1dd9c78-d034-4871-9a1b-7e7fc5b9b13f)">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/hpc/hpc" local="$PROJECT_DIR$" />
+            <mapping deploy="/home/ubuntu/hpc" local="$PROJECT_DIR$" web="/" />
           </mappings>
           <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
             <excludedPath local="true" path="$PROJECT_DIR$/documents" />
-            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
-            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
           </excludedPaths>
         </serverdata>
       </paths>
-      <paths name="FEMA (972f1262-7ad9-44b1-8e0f-b7c98431d4ec)">
+      <paths name="FEMA (097e5543-24c0-422a-8560-4c6cd5ce9ac5)">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/fema/hpc" local="$PROJECT_DIR$" />
           </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
+            <excludedPath local="true" path="$PROJECT_DIR$/documents" />
+          </excludedPaths>
         </serverdata>
       </paths>
-      <paths name="WSL (d826cd98-bf85-429e-aa3c-e8027e1417b6)">
+      <paths name="WSL (d51e98cc-469c-4674-acc2-ba6ae67fbb64)">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />

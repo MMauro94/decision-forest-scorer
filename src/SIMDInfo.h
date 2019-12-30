@@ -38,8 +38,8 @@ class SIMD512Info {
 			return _mm512_mask_mov_epi64(source, mask, val);
 		}
 
-		static __mmask8 mask_cmp_mask(__mmask8 mask, type a, type b, const int operation) {
-			return _mm512_mask_cmp_epi64_mask(mask, a, b, operation);
+		static __mmask8 mask_eq(__mmask8 mask, type a, type b) {
+			return _mm512_mask_cmp_epi64_mask(mask, a, b, _MM_CMPINT_EQ);
 		}
 
 		static type mask_add(type source, __mmask8 mask, type a, type b) {
@@ -83,8 +83,8 @@ class SIMD256Info {
 			return _mm256_mask_mov_epi32(source, mask, val);
 		}
 
-		static __mmask8 mask_cmp_mask(__mmask8 mask, type a, type b, const int operation) {
-			return _mm256_mask_cmp_epi32_mask(mask, a, b, operation);
+		static __mmask8 mask_eq(__mmask8 mask, type a, type b) {
+			return _mm256_mask_cmp_epi32_mask(mask, a, b, _MM_CMPINT_EQ);
 		}
 
 		static type mask_add(type source, __mmask8 mask, type a, type b) {
