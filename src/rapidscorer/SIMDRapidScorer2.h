@@ -21,7 +21,7 @@ class SIMDRapidScorer2 {
 		std::vector<SingleFeatureSIMDRapidScorer2<SIMDInfo>> featureScorers;
 
 	public:
-		typedef SIMDDocumentGroup DocGroup;
+		typedef MultiSIMDDocumentGroup<SIMDInfo::groups> DocGroup;
 
 		explicit SIMDRapidScorer2(const Config<SIMDRapidScorer2<SIMDInfo>> &config, std::shared_ptr<Forest> forest) : config(config), forest(std::move(forest)) {
 			auto featuresCount = this->forest->maximumFeatureIndex();
@@ -46,23 +46,41 @@ class SIMDRapidScorer2 {
 template<typename SIMDInfo>
 class SingleFeatureSIMDRapidScorer2 : SingleFeatureMergedRapidScorer<typename SIMDInfo::base_type> {
 
+		typedef typename SIMDInfo::mask_type simd_mask_type;
 	public:
-		typedef SIMDDocumentGroup DocGroup;
+		typedef MultiSIMDDocumentGroup<SIMDInfo::groups> DocGroup;
 
 		explicit SingleFeatureSIMDRapidScorer2(const std::shared_ptr<Forest> &forest, unsigned int featureIndex)
-				: SingleFeatureMergedRapidScorer<typename SIMDInfo::base_type>(forest, featureIndex, false) {
+				: SingleFeatureMergedRapidScorer<typename SIMDInfo::base_type>(forest, featureIndex) {
 		}
 
 		void score(const DocGroup &documents, SIMDResultMask<SIMDInfo> &result) const {
-			__m512d value = documents.get(this->featureIndex);
-			unsigned int end = this->featureThresholds.size();
+			int simdGroups = SIMDInfo::groups / 8;
 
-			__mmask8 isLE = 0xFF;
-			unsigned index = 0;
-			unsigned lastBlockIndex = 0;
-			for (unsigned int thresholdIndex = 0; thresholdIndex < end && isLE > 0; thresholdIndex++) {
-				isLE = _mm512_mask_cmp_pd_mask(isLE, value, _mm512_set1_pd(this->featureThresholds[thresholdIndex]), _CMP_GT_OQ);
-				// extract mask of comparison 1 if the comparison is FALSE
+			__m512d values[simdGroups];
+			__mmask8 isLE[simdGroups];
+			for (int g = 0; g < simdGroups; g++) {
+				values[g] = documents.getGroup(g, this->featureIndex);
+				isLE[g] = 0xFF;
+			}
+
+			unsigned int index = 0;
+			unsigned int lastBlockIndex = 0;
+			unsigned int end = this->featureThresholds.size();
+			for (unsigned int thresholdIndex = 0; thresholdIndex < end; thresholdIndex++) {
+				__m512d threshold = _mm512_set1_pd(this->featureThresholds[thresholdIndex]);
+
+				simd_mask_type isLEMask = 0;
+				for (int g = 0; g < simdGroups; g++) {
+					// extract mask of comparison. 1 if the comparison is FALSE
+					isLE[g] = _mm512_mask_cmp_pd_mask(isLE[g], values[g], threshold, _CMP_GT_OQ);
+					isLEMask <<= 8;
+					isLEMask |= isLE[g];
+				}
+				if (isLEMask == 0) {
+					return;//All documents' values are bigger than the thresholds
+				}
+
 				unsigned int epitomesToEpitome = this->featureThresholdToOffset[thresholdIndex + 1];
 				for (; index < epitomesToEpitome; index++) {
 					if (this->lastBlockIsSameAsFirstBlock[index]) {
@@ -72,7 +90,7 @@ class SingleFeatureSIMDRapidScorer2 : SingleFeatureMergedRapidScorer<typename SI
 								this->firstBlocks[index],
 								this->firstBlockPositions[index],
 								this->treeIndexes[index],
-								isLE
+								isLEMask
 						);
 					} else {
 						result.applyMask(
@@ -81,7 +99,7 @@ class SingleFeatureSIMDRapidScorer2 : SingleFeatureMergedRapidScorer<typename SI
 								this->lastBlocks[lastBlockIndex],
 								this->lastBlockPositions[lastBlockIndex],
 								this->treeIndexes[index],
-								isLE
+								isLEMask
 						);
 						lastBlockIndex++;
 					}

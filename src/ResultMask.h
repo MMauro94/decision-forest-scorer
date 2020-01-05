@@ -39,15 +39,15 @@ class ResultMask {
 
 		void applyMask(Block firstBlock, uint8_t firstBlockPosition, Block lastBlock, uint8_t lastBlockPosition, const unsigned int treeIndex) {
 			unsigned int start = treeIndex * masksPerTree;
-#pragma omp atomic update
+#pragma omp atomic update//TODO: fa atomic anche quando è in un parallelismo per cui atomic non serve?
 			this->results[start + firstBlockPosition] &= firstBlock;
 			if (firstBlockPosition != lastBlockPosition) {
 				unsigned int end = start + lastBlockPosition;
 				for (unsigned int i = start + firstBlockPosition + 1u; i < end; i++) {
-#pragma omp atomic write
+#pragma omp atomic write//TODO: fa atomic anche quando è in un parallelismo per cui atomic non serve?
 					this->results[i] = 0;
 				}
-#pragma omp atomic update
+#pragma omp atomic update//TODO: fa atomic anche quando è in un parallelismo per cui atomic non serve?
 				this->results[end] &= lastBlock;
 			}
 		}

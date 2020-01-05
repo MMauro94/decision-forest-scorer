@@ -21,6 +21,7 @@ class SIMDResultMask {
 	private:
 		typedef typename SIMDInfo::type simd_type;
 		typedef typename SIMDInfo::base_type simd_base_type;
+		typedef typename SIMDInfo::mask_type simd_mask_type;
 
 		std::shared_ptr<Forest> _forest;
 		unsigned int masksPerTree;
@@ -38,11 +39,11 @@ class SIMDResultMask {
 			}
 		}
 
-		void applyMask(const Epitome<simd_base_type> &epitome, const unsigned int treeIndex, __mmask8 mask) {
+		void applyMask(const Epitome<simd_base_type> &epitome, const unsigned int treeIndex, simd_mask_type mask) {
 			this->applyMask(epitome.firstBlock, epitome.firstBlockPosition, epitome.lastBlock, epitome.lastBlockPosition, treeIndex, mask);
 		}
 
-		void applyMask(simd_base_type firstBlock, u_int8_t firstBlockPosition, simd_base_type lastBlock, u_int8_t lastBlockPosition, const unsigned int treeIndex, __mmask8 mask) {
+		void applyMask(simd_base_type firstBlock, u_int8_t firstBlockPosition, simd_base_type lastBlock, u_int8_t lastBlockPosition, const unsigned int treeIndex, simd_mask_type mask) {
 			unsigned int start = treeIndex * this->masksPerTree;
 
 			this->results[start + firstBlockPosition] = SIMDInfo::mask_and(
@@ -69,16 +70,19 @@ class SIMDResultMask {
 
 		template<typename Scorer>
 		[[nodiscard]] std::vector<double> computeScore(const Config<Scorer> &config) const {
-			std::vector<double> scores(8, 0.0);
+			const auto simdGroups = SIMDInfo::groups;
+			std::vector<double> scores(simdGroups, 0.0);
 #pragma omp parallel for num_threads(config.number_of_threads) if(config.parallel_score) default(none) shared(scores)
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
-				alignas(SIMDInfo::bits) simd_base_type leafIndexes[8];
-				SIMDInfo::store(leafIndexes, this->firstOne(i));
-				auto &tree = this->_forest->trees[i];
-				for (unsigned int j = 0; j < 8; j++) {
-					double s = tree.scoreByLeafIndex(leafIndexes[j]);
-#pragma omp atomic update
-					scores[j] += s;
+				if (sizeof(simd_base_type) > 1) {
+					alignas(SIMDInfo::bits) simd_base_type leafIndexes[simdGroups];
+					firstOne(i, leafIndexes);
+					this->updateScores(scores, i, leafIndexes);
+				} else {
+					//I cannot store the leaf index inside simd_base_type (max number of leaves > 255)
+					unsigned int leafIndexes[simdGroups];
+					firstOneArray(i, leafIndexes);
+					this->updateScores(scores, i, leafIndexes);
 				}
 			}
 			return scores;
@@ -86,20 +90,57 @@ class SIMDResultMask {
 
 	private:
 
-		[[nodiscard]] simd_type firstOne(unsigned long tree_index) const {
-			__mmask8 found_results = 0xFF;
-			simd_type result_indexes = SIMDInfo::set1(0);
-			simd_type block_result = SIMDInfo::set1(0);
+		template<typename T>
+		void updateScores(std::vector<double> &scores, unsigned long treeIndex, T leafIndexes[]) const {
+			auto &tree = this->_forest->trees[treeIndex];
+			for (unsigned int j = 0; j < SIMDInfo::groups; j++) {
+				double s = tree.scoreByLeafIndex(leafIndexes[j]);
+#pragma omp atomic update //TODO: fa atomic anche quando è in un parallelismo per cui atomic non serve?
+				scores[j] += s;
+			}
+		}
+
+		void firstOne(unsigned long tree_index, simd_base_type toFill[]) const {
+			simd_mask_type found_results = -1;
+			simd_type zero = SIMDInfo::setZero();
+			simd_type result_indexes = zero;
+			simd_type block_result = zero;
 			simd_type group_size = SIMDInfo::set1(SIMDInfo::bits);
 
-			for (unsigned long i = this->masksPerTree * tree_index; found_results > 0; i++) {
+			for (unsigned long i = this->masksPerTree * tree_index; found_results != 0; i++) {
 				block_result = SIMDInfo::mask_mov(block_result, found_results, this->results[i]);
-				found_results = SIMDInfo::mask_eq(found_results, this->results[i], SIMDInfo::set1(0));
+				found_results = SIMDInfo::mask_eq(found_results, this->results[i], zero);
 				result_indexes = SIMDInfo::mask_add(result_indexes, found_results, result_indexes, group_size);
 			}
 
-			block_result = SIMDInfo::lzcnt(block_result);
-			return SIMDInfo::add(block_result, result_indexes);
+			simd_type lzcnt = SIMDInfo::lzcnt(block_result);
+			simd_type result = SIMDInfo::add(lzcnt, result_indexes);
+
+			SIMDInfo::store(toFill, result);
+		}
+
+		void firstOneArray(unsigned long tree_index, unsigned int toFill[]) const {
+			simd_mask_type found_results = -1;
+			simd_type zero = SIMDInfo::setZero();
+			simd_type one = SIMDInfo::set1(1);
+			simd_type result_indexes = zero;
+			simd_type block_result = zero;
+
+			for (unsigned long i = this->masksPerTree * tree_index; found_results != 0; i++) {
+				block_result = SIMDInfo::mask_mov(block_result, found_results, this->results[i]);
+				found_results = SIMDInfo::mask_eq(found_results, this->results[i], zero);
+				result_indexes = SIMDInfo::mask_add(result_indexes, found_results, result_indexes, one);
+			}
+			simd_type lzcnt = SIMDInfo::lzcnt(block_result);
+
+			alignas(SIMDInfo::bits) simd_base_type result_indexes_array[SIMDInfo::groups];
+			alignas(SIMDInfo::bits) simd_base_type lzcnt_array[SIMDInfo::groups];
+			SIMDInfo::store(result_indexes_array, result_indexes);
+			SIMDInfo::store(lzcnt_array, lzcnt);
+
+			for (int i = 0; i < SIMDInfo::groups; i++) {
+				toFill[i] = result_indexes_array[i] * SIMDInfo::bits + lzcnt_array[i];
+			}
 		}
 
 };

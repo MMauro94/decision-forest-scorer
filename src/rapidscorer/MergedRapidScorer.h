@@ -56,40 +56,7 @@ class SingleFeatureMergedRapidScorer {
 		std::vector<uint8_t> lastBlockPositions;
 
 		std::vector<bool> lastBlockIsSameAsFirstBlock;
-		std::vector<unsigned int> lastBlockIndexes;
 
-		explicit SingleFeatureMergedRapidScorer(const std::shared_ptr<Forest> &forest, unsigned int featureIndex, bool computeLastBlockIndexes) : featureIndex(featureIndex) {
-			std::vector<std::shared_ptr<InternalNode>> nodes;
-			for (auto &tree : forest->trees) {
-				addNodes(nodes, tree.root);
-			}
-
-			std::sort(nodes.begin(), nodes.end(), nodeComparator);
-			for (unsigned int i = 0; i < nodes.size(); i++) {
-				auto &node = nodes[i];
-				if (i == 0 || nodes[i - 1]->splittingThreshold != node->splittingThreshold) {
-					this->featureThresholds.emplace_back(node->splittingThreshold);
-					this->featureThresholdToOffset.emplace_back(i);
-				}
-				this->treeIndexes.emplace_back(node->getTreeIndex());
-				auto ep = Epitome<Block>(forest->trees[node->getTreeIndex()].countLeafsUntil(node), node->leftNode->numberOfLeafs());
-				this->firstBlocks.emplace_back(ep.firstBlock);
-				this->firstBlockPositions.emplace_back(ep.firstBlockPosition);
-				if (computeLastBlockIndexes) {
-					this->lastBlockIndexes.emplace_back(this->lastBlocks.size());
-				}
-				if (ep.firstBlockPosition != ep.lastBlockPosition) {
-					this->lastBlocks.emplace_back(ep.lastBlock);
-					this->lastBlockPositions.emplace_back(ep.lastBlockPosition);
-					this->lastBlockIsSameAsFirstBlock.emplace_back(false);
-				} else {
-					this->lastBlockIsSameAsFirstBlock.emplace_back(true);
-				}
-			}
-			this->featureThresholdToOffset.emplace_back(nodes.size());
-			//std::cout << "Feature " << featureIndex << ": " << nodes.size() << " nodes, \t" <<
-			//		  this->featureThresholds.size() << " thresholds, \t" << this->lastBlocks.size() << " last blocks" << std::endl;
-		}
 
 	private:
 		void addNodes(std::vector<std::shared_ptr<InternalNode>> &ret, const std::shared_ptr<InternalNode> &node) const {
@@ -114,31 +81,61 @@ class SingleFeatureMergedRapidScorer {
 	public:
 		typedef SingleDocument DocGroup;
 
-		explicit SingleFeatureMergedRapidScorer(const std::shared_ptr<Forest> &forest, unsigned int featureIndex) : SingleFeatureMergedRapidScorer<Block>(forest, featureIndex, true) {
-		}
+		explicit SingleFeatureMergedRapidScorer(const std::shared_ptr<Forest> &forest, unsigned int featureIndex) : featureIndex(featureIndex) {
+			std::vector<std::shared_ptr<InternalNode>> nodes;
+			for (auto &tree : forest->trees) {
+				addNodes(nodes, tree.root);
+			}
 
+			std::sort(nodes.begin(), nodes.end(), nodeComparator);
+
+			for (unsigned int i = 0; i < nodes.size(); i++) {
+				auto &node = nodes[i];
+				if (i == 0 || nodes[i - 1]->splittingThreshold != node->splittingThreshold) {
+					this->featureThresholds.emplace_back(node->splittingThreshold);
+					this->featureThresholdToOffset.emplace_back(i);
+				}
+				this->treeIndexes.emplace_back(node->getTreeIndex());
+				auto ep = Epitome<Block>(forest->trees[node->getTreeIndex()].countLeafsUntil(node), node->leftNode->numberOfLeafs());
+				this->firstBlocks.emplace_back(ep.firstBlock);
+				this->firstBlockPositions.emplace_back(ep.firstBlockPosition);
+				if (ep.firstBlockPosition != ep.lastBlockPosition) {
+					this->lastBlocks.emplace_back(ep.lastBlock);
+					this->lastBlockPositions.emplace_back(ep.lastBlockPosition);
+					this->lastBlockIsSameAsFirstBlock.emplace_back(false);
+				} else {
+					this->lastBlockIsSameAsFirstBlock.emplace_back(true);
+				}
+			}
+			this->featureThresholdToOffset.emplace_back(nodes.size());
+			/*std::cout << "Feature " << featureIndex << ": " << nodes.size() << " nodes, \t" <<
+					  this->lastBlocks.size() << " last blocks, \t" <<
+					  this->featureThresholds.size() << " thresholds, \t" <<
+					  std::endl;*/
+		}
 		void score(const DocGroup &document, ResultMask<Block> &result) const {
 			unsigned long thresholdIndex = std::lower_bound(this->featureThresholds.begin(), this->featureThresholds.end(), document.features[this->featureIndex]) - this->featureThresholds.begin();
 			unsigned int epitomesToEpitome = this->featureThresholdToOffset[thresholdIndex];
+			unsigned int lastBlockIndex = 0;
 
-			for (unsigned long j = 0; j < epitomesToEpitome; j++) {
-				if (this->lastBlockIsSameAsFirstBlock[j]) {
+			for (unsigned long index = 0; index < epitomesToEpitome; index++) {
+				if (this->lastBlockIsSameAsFirstBlock[index]) {
 					result.applyMask(
-							this->firstBlocks[j],
-							this->firstBlockPositions[j],
-							this->firstBlocks[j],
-							this->firstBlockPositions[j],
-							this->treeIndexes[j]
+							this->firstBlocks[index],
+							this->firstBlockPositions[index],
+							this->firstBlocks[index],
+							this->firstBlockPositions[index],
+							this->treeIndexes[index]
 					);
 				} else {
-					auto lastBlockIndex = this->lastBlockIndexes[j];
 					result.applyMask(
-							this->firstBlocks[j],
-							this->firstBlockPositions[j],
+							this->firstBlocks[index],
+							this->firstBlockPositions[index],
 							this->lastBlocks[lastBlockIndex],
 							this->lastBlockPositions[lastBlockIndex],
-							this->treeIndexes[j]
+							this->treeIndexes[index]
 					);
+					lastBlockIndex++;
 				}
 			}
 		}
