@@ -76,12 +76,12 @@ class SIMDResultMask {
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
 				if (sizeof(simd_base_type) > 1) {
 					alignas(SIMDInfo::bits) simd_base_type leafIndexes[simdGroups];
-					firstOne(i, leafIndexes);
+					firstOneInPlace(i, leafIndexes);
 					this->updateScores(scores, i, leafIndexes);
 				} else {
 					//I cannot store the leaf index inside simd_base_type (max number of leaves > 255)
 					unsigned int leafIndexes[simdGroups];
-					firstOneArray(i, leafIndexes);
+					firstOneInArray(i, leafIndexes);
 					this->updateScores(scores, i, leafIndexes);
 				}
 			}
@@ -100,7 +100,7 @@ class SIMDResultMask {
 			}
 		}
 
-		void firstOne(unsigned long tree_index, simd_base_type toFill[]) const {
+		void firstOneInPlace(unsigned long tree_index, simd_base_type *toFill) const {
 			simd_mask_type found_results = -1;
 			simd_type zero = SIMDInfo::setZero();
 			simd_type result_indexes = zero;
@@ -119,7 +119,7 @@ class SIMDResultMask {
 			SIMDInfo::store(toFill, result);
 		}
 
-		void firstOneArray(unsigned long tree_index, unsigned int toFill[]) const {
+		void firstOneInArray(unsigned long tree_index, unsigned int *toFill) const {
 			simd_mask_type found_results = -1;
 			simd_type zero = SIMDInfo::setZero();
 			simd_type one = SIMDInfo::set1(1);

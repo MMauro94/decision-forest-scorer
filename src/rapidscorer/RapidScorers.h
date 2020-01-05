@@ -7,9 +7,8 @@
 #include "../Tree.h"
 #include "../EqNode.h"
 #include "../ResultMask.h"
-#include "../SIMDDoubleGroup.h"
 
-template <class RapidScorer>
+template<class RapidScorer>
 class RapidScorers {
 		Config<RapidScorer> config;
 		std::vector<RapidScorer> scorers;

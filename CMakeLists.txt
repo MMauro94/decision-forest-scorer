@@ -21,11 +21,9 @@ add_executable(forest_tree_evaluator
         src/rapidscorer/LinearizedRapidScorer.h
         src/rapidscorer/MergedRapidScorer.h
         src/rapidscorer/SIMDRapidScorer.h
-        src/rapidscorer/SIMDRapidScorer2.h
         src/main.cpp
         #tests/epitome_test.cpp
         ${json_files}
-        src/SIMDDoubleGroup.h
         src/SIMDResultMask.h
         src/DocGroup.h
         src/TestCase.h

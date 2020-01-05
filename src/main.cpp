@@ -2,11 +2,10 @@
 #include "Tree.h"
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
-#include "rapidscorer/SIMDRapidScorer.h"
 #include "TestCase.h"
 #include "SIMDInfo.h"
 #include "rapidscorer/MergedRapidScorer.h"
-#include "rapidscorer/SIMDRapidScorer2.h"
+#include "rapidscorer/SIMDRapidScorer.h"
 #include <fstream>
 #include <sstream>
 #include <set>
@@ -151,19 +150,16 @@ std::vector<T> flatten(const std::vector<std::vector<T>> &vector) {
 }
 
 const std::vector<std::shared_ptr<Testable>> TESTS = {
-		std::make_shared<TestCase<SIMDRapidScorer2<SIMD256InfoX16>>>(Config<SIMDRapidScorer2<SIMD256InfoX16>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.10317ms
-		/*std::make_shared<TestCase<SIMDRapidScorer2<SIMD512InfoX64>>>(Config<SIMDRapidScorer2<SIMD512InfoX64>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.15463ms
-		std::make_shared<TestCase<SIMDRapidScorer2<SIMD512InfoX16>>>(Config<SIMDRapidScorer2<SIMD512InfoX16>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.2211sms
-		std::make_shared<TestCase<SIMDRapidScorer2<SIMD128InfoX16>>>(Config<SIMDRapidScorer2<SIMD128InfoX16>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.29232ms
-		std::make_shared<TestCase<SIMDRapidScorer2<SIMD256InfoX32>>>(Config<SIMDRapidScorer2<SIMD256InfoX32>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.36083ms
-		std::make_shared<TestCase<SIMDRapidScorer2<SIMD512InfoX32>>>(Config<SIMDRapidScorer2<SIMD512InfoX32>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.41965sms
-		std::make_shared<TestCase<SIMDRapidScorer2<SIMD256InfoX8>>>(Config<SIMDRapidScorer2<SIMD256InfoX8>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.5129sms
-		std::make_shared<TestCase<SIMDRapidScorer2<SIMD128InfoX8>>>(Config<SIMDRapidScorer2<SIMD128InfoX8>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.70141sms
-		std::make_shared<TestCase<SIMDRapidScorer2<SIMD512InfoX8>>>(Config<SIMDRapidScorer2<SIMD512InfoX8>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.72587sms
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD256InfoX32>>>(Config<SIMDRapidScorer<SIMD256InfoX32>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.36083ms
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD512InfoX64>>>(Config<SIMDRapidScorer<SIMD512InfoX64>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.19378sms
+		/*std::make_shared<TestCase<SIMDRapidScorer<SIMD256InfoX16>>>(Config<SIMDRapidScorer<SIMD256InfoX16>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.10317ms
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD256InfoX8>>>(Config<SIMDRapidScorer<SIMD256InfoX8>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.55809sms
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD512InfoX16>>>(Config<SIMDRapidScorer<SIMD512InfoX16>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.2211sms
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD128InfoX16>>>(Config<SIMDRapidScorer<SIMD128InfoX16>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.29232ms
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD512InfoX32>>>(Config<SIMDRapidScorer<SIMD512InfoX32>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.41965sms
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD128InfoX8>>>(Config<SIMDRapidScorer<SIMD128InfoX8>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.70141sms
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD512InfoX8>>>(Config<SIMDRapidScorer<SIMD512InfoX8>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.72587sms
 */
-		//std::make_shared<TestCase<SIMDRapidScorer<SIMD256InfoX8>>>(Config<SIMDRapidScorer<SIMD256InfoX8>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 5.07625ms
-		//std::make_shared<TestCase<SIMDRapidScorer<SIMD512InfoX8>>>(Config<SIMDRapidScorer<SIMD512InfoX8>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 5.44284ms
-
 		/*
 		 * std::make_shared<TestCase<MergedRapidScorer<uint64_t>>>(Config<MergedRapidScorer<uint64_t>>::serial(), MAX_DOCUMENTS, FOLD),//
 		std::make_shared<TestCase<LinearizedRapidScorer<uint64_t>>>(Config<LinearizedRapidScorer<uint64_t>>::serial(), MAX_DOCUMENTS, FOLD),//
@@ -190,9 +186,6 @@ const auto TESTS1 = flatten<std::shared_ptr<Testable>>({
 		generateTestsParallelisms<EqNodesRapidScorer<uint16_t>>(),
 		generateTestsParallelisms<EqNodesRapidScorer<uint32_t>>(),
 		generateTestsParallelisms<EqNodesRapidScorer<uint64_t>>(),
-
-		generateTestsParallelisms<SIMDRapidScorer<SIMD256InfoX8>>(),
-		generateTestsParallelisms<SIMDRapidScorer<SIMD512InfoX8>>()
 });
 */
 
