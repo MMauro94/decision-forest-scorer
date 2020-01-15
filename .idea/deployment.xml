@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" serverName="AWS Mauro (6fcb3759-29cb-47fc-9250-c76568278546)">
+  <component name="PublishConfigData">
     <serverData>
-      <paths name="AWS Mauro (6fcb3759-29cb-47fc-9250-c76568278546)">
+      <paths name="AWS MMAURO (1e25a939-b661-4080-ae4b-83b120a3a20d)">
         <serverdata>
           <mappings>
             <mapping deploy="/home/ubuntu/hpc" local="$PROJECT_DIR$" />
@@ -13,17 +13,28 @@
           </excludedPaths>
         </serverdata>
       </paths>
-      <paths name="FEMA (a567cf33-d000-4181-9d3c-56a42a9fbe0e)">
+      <paths name="AZURE FRANCESCO BENVENUTO (bbcf2ac6-a11d-4ecf-8ed3-027d81456e2f)">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/tmp.zbOJXUYsNC" local="$PROJECT_DIR$" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
-          <excludedPaths>
-            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
-          </excludedPaths>
         </serverdata>
       </paths>
-      <paths name="WSL (10e93de5-2288-401a-8370-380f09bbc3a2)">
+      <paths name="FEMA (972f1262-7ad9-44b1-8e0f-b7c98431d4ec)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Unive (49ade993-d694-409d-9aa1-dc75bf432d8e)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="WSL (d826cd98-bf85-429e-aa3c-e8027e1417b6)">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />

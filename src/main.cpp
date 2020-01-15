@@ -121,34 +121,32 @@ std::vector<double> parseScores(const unsigned int fold, const unsigned long max
 #define FOLD 1
 
 template<typename Scorer>
-std::vector<std::shared_ptr<Testable>> generateTests(bool parallel = true) {
-	if (parallel) {
-		return {
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::serial(), MAX_DOCUMENTS, FOLD),
+std::vector<std::shared_ptr<Testable>> generateTests(bool parallelFeature = true, bool parallelDocuments = true, bool parallelForest = true) {
+	std::vector<std::shared_ptr<Testable>> ret;
+	ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::serial(), MAX_DOCUMENTS, FOLD));
 
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelFeature(2), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelFeature(4), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelFeature(8), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelFeature(16), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelFeature(32), MAX_DOCUMENTS, FOLD),
-
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelDocuments(2), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelDocuments(4), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelDocuments(8), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelDocuments(16), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelDocuments(32), MAX_DOCUMENTS, FOLD),
-
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelForest(2), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelForest(4), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelForest(8), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelForest(16), MAX_DOCUMENTS, FOLD),
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelForest(32), MAX_DOCUMENTS, FOLD),
-		};
-	} else {
-		return {
-				std::make_shared<TestCase<Scorer>>(Config<Scorer>::serial(), MAX_DOCUMENTS, FOLD),
-		};
+	if (parallelFeature) {
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelFeature(2), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelFeature(4), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelFeature(8), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelFeature(16), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelFeature(32), MAX_DOCUMENTS, FOLD));
 	}
+	if (parallelDocuments) {
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelDocuments(2), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelDocuments(4), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelDocuments(8), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelDocuments(16), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelDocuments(32), MAX_DOCUMENTS, FOLD));
+	}
+	if (parallelForest) {
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelForest(2), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelForest(4), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelForest(8), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelForest(16), MAX_DOCUMENTS, FOLD));
+		ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::parallelForest(32), MAX_DOCUMENTS, FOLD));
+	}
+	return ret;
 }
 
 template<typename T>
@@ -189,32 +187,32 @@ const std::vector<std::shared_ptr<Testable>> TESTS2 = {
 
 const auto TESTS = flatten<std::shared_ptr<Testable>>(
 		{
-				generateTests<MergedRapidScorer<uint8_t>>(),
+				/*generateTests<MergedRapidScorer<uint8_t>>(),
 				generateTests<MergedRapidScorer<uint16_t>>(),
 				generateTests<MergedRapidScorer<uint32_t>>(),
 				generateTests<MergedRapidScorer<uint64_t>>(),
 
-				generateTests<LinearizedRapidScorer<uint8_t>>(false),
-				generateTests<LinearizedRapidScorer<uint16_t>>(false),
-				generateTests<LinearizedRapidScorer<uint32_t>>(false),
-				generateTests<LinearizedRapidScorer<uint64_t>>(false),
+				generateTests<LinearizedRapidScorer<uint8_t>>(false, false, false),
+				generateTests<LinearizedRapidScorer<uint16_t>>(false, false, false),
+				generateTests<LinearizedRapidScorer<uint32_t>>(false, false, false),
+				generateTests<LinearizedRapidScorer<uint64_t>>(false, false, false),
 
-				generateTests<EqNodesRapidScorer<uint8_t>>(false),
-				generateTests<EqNodesRapidScorer<uint16_t>>(false),
-				generateTests<EqNodesRapidScorer<uint32_t>>(false),
-				generateTests<EqNodesRapidScorer<uint64_t>>(false),
+				generateTests<EqNodesRapidScorer<uint8_t>>(false, false, false),
+				generateTests<EqNodesRapidScorer<uint16_t>>(false, false, false),
+				generateTests<EqNodesRapidScorer<uint32_t>>(false, false, false),
+				generateTests<EqNodesRapidScorer<uint64_t>>(false, false, false),*/
 
-				generateTests<SIMDRapidScorer<SIMD256InfoX8>>(),
-				generateTests<SIMDRapidScorer<SIMD256InfoX16>>(),
-				generateTests<SIMDRapidScorer<SIMD256InfoX32>>(),
+				/*generateTests<SIMDRapidScorer<SIMD256InfoX8>>(false, true, true),
+				generateTests<SIMDRapidScorer<SIMD256InfoX16>>(false, true, true),
+				generateTests<SIMDRapidScorer<SIMD256InfoX32>>(false, true, true),
 
-				generateTests<SIMDRapidScorer<SIMD512InfoX8>>(),
-				generateTests<SIMDRapidScorer<SIMD512InfoX16>>(),
-				generateTests<SIMDRapidScorer<SIMD512InfoX32>>(),
-				generateTests<SIMDRapidScorer<SIMD512InfoX64>>(),
+				generateTests<SIMDRapidScorer<SIMD512InfoX8>>(false, true, true),
+				generateTests<SIMDRapidScorer<SIMD512InfoX16>>(false, true, true),
+				generateTests<SIMDRapidScorer<SIMD512InfoX32>>(false, true, true),
+				generateTests<SIMDRapidScorer<SIMD512InfoX64>>(false, true, true),
 
-				generateTests<SIMDRapidScorer<SIMD128InfoX8>>(),
-				generateTests<SIMDRapidScorer<SIMD128InfoX16>>(),
+				generateTests<SIMDRapidScorer<SIMD128InfoX8>>(false, true, true),
+				generateTests<SIMDRapidScorer<SIMD128InfoX16>>(false, true, true),*/
 		});
 
 
