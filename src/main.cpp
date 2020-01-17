@@ -160,7 +160,7 @@ std::vector<T> flatten(const std::vector<std::vector<T>> &vector) {
 }
 
 const std::vector<std::shared_ptr<Testable>> TESTS = {
-		std::make_shared<TestCase<SIMDRapidScorer<SIMD512InfoX8>>>(Config<SIMDRapidScorer<SIMD512InfoX8>>::parallelDocuments(32), MAX_DOCUMENTS, FOLD)
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD128InfoX16>>>(Config<SIMDRapidScorer<SIMD128InfoX16>>::serial(), MAX_DOCUMENTS, FOLD)
 };
 
 
