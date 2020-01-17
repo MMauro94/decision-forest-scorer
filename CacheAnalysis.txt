@@ -1,0 +1,207 @@
+SIMDRapidScorer<SIMD512InfoX64>
+
+176883.477612      task-clock (msec)         #    0.675 CPUs utilized
+           51      context-switches          #    0.000 K/sec
+            0      cpu-migrations            #    0.000 K/sec
+            2      page-faults               #    0.000 K/sec
+       113461      cycles                    #    0.000 GHz
+ 233542666807      instructions              #    2058351.92  insn per cycle
+  23139376285      branches                  #    130.817 M/sec
+   2861379836      branch-misses             #    12.37% of all branches
+  74727902638      L1-dcache-loads           #    422.470 M/sec
+  17529460572      L1-dcache-load-misses     #    23.46% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX32>
+
+166005.443267      task-clock (msec)         #    0.661 CPUs utilized
+           41      context-switches          #    0.000 K/sec
+            0      cpu-migrations            #    0.000 K/sec
+            1      page-faults               #    0.000 K/sec
+        85950      cycles                    #    0.000 GHz
+ 357906671502      instructions              #    4164126.49  insn per cycle
+  33341544756      branches                  #    200.846 M/sec
+   3240289824      branch-misses             #    9.72% of all branches
+ 113544562909      L1-dcache-loads           #    683.981 M/sec
+  23240152825      L1-dcache-load-misses     #    20.47% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX16>
+
+184522.660308      task-clock (msec)         #    0.685 CPUs utilized
+           46      context-switches          #    0.000 K/sec
+            0      cpu-migrations            #    0.000 K/sec
+            1      page-faults               #    0.000 K/sec
+        86223      cycles                    #    0.000 GHz
+ 592440024602      instructions              #    6871020.78  insn per cycle
+  50486679772      branches                  #    273.607 M/sec
+   3661528262      branch-misses             #    7.25% of all branches
+ 203515646041      L1-dcache-loads           #    1102.930 M/sec
+  32118256084      L1-dcache-load-misses     #    15.78% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX8>
+
+239935.327653      task-clock (msec)         #    0.738 CPUs utilized
+           60      context-switches          #    0.000 K/sec
+            0      cpu-migrations            #    0.000 K/sec
+            1      page-faults               #    0.000 K/sec
+        86812      cycles                    #    0.000 GHz
+ 954163426756      instructions              #    10991146.69  insn per cycle
+  81453597201      branches                  #    339.481 M/sec
+   3597334675      branch-misses             #    4.42% of all branches
+ 344055442065      L1-dcache-loads           #    1433.951 M/sec
+  50020870309      L1-dcache-load-misses     #    14.54% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX64> (2 threads parallel forest)
+
+153298.919624      task-clock (msec)         #    0.945 CPUs utilized
+          302      context-switches          #    0.002 K/sec
+            0      cpu-migrations            #    0.000 K/sec
+        16048      page-faults               #    0.105 K/sec
+        82073      cycles                    #    0.000 GHz
+ 231792185483      instructions              #    2824219.72  insn per cycle
+  22602364810      branches                  #    147.440 M/sec
+   2871819864      branch-misses             #    12.71% of all branches
+  73706816237      L1-dcache-loads           #    480.805 M/sec
+  16551508350      L1-dcache-load-misses     #    22.46% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX64> (4 threads parallel forest)
+
+123216.662152      task-clock (msec)         #    1.060 CPUs utilized
+          301      context-switches          #    0.002 K/sec
+            5      cpu-migrations            #    0.000 K/sec
+            1      page-faults               #    0.000 K/sec
+       188355      cycles                    #    0.000 GHz
+ 218243771029      instructions              #    1158683.18  insn per cycle
+  21182908929      branches                  #    171.916 M/sec
+   2721316943      branch-misses             #    12.85% of all branches
+  68773107309      L1-dcache-loads           #    558.148 M/sec
+  14146265716      L1-dcache-load-misses     #    20.57% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX64> (8 threads parallel forest)
+
+70776.705898      task-clock (msec)         #    0.745 CPUs utilized
+       16073      context-switches          #    0.227 K/sec
+           9      cpu-migrations            #    0.000 K/sec
+        4825      page-faults               #    0.068 K/sec
+      406140      cycles                    #    0.000 GHz
+132472970117      instructions              #    326175.63  insn per cycle
+ 12828431066      branches                  #    181.252 M/sec
+  1662747982      branch-misses             #    12.96% of all branches
+ 41156982041      L1-dcache-loads           #    581.505 M/sec
+  7821885526      L1-dcache-load-misses     #    19.01% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX64> (16 threads parallel forest)
+
+96972.352854      task-clock (msec)         #    1.176 CPUs utilized
+       26749      context-switches          #    0.276 K/sec
+         145      cpu-migrations            #    0.001 K/sec
+       15093      page-faults               #    0.156 K/sec
+      755779      cycles                    #    0.000 GHz
+127767906113      instructions              #    169054.59  insn per cycle
+ 12625972159      branches                  #    130.202 M/sec
+  1595713268      branch-misses             #    12.64% of all branches
+ 38400873120      L1-dcache-loads           #    395.998 M/sec
+  6871649290      L1-dcache-load-misses     #    17.89% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX64> (32 threads parallel forest)
+
+547186.092112      task-clock (msec)         #    6.587 CPUs utilized
+       104924      context-switches          #    0.192 K/sec
+        14390      cpu-migrations            #    0.026 K/sec
+        71159      page-faults               #    0.130 K/sec
+      1291889      cycles                    #    0.000 GHz
+ 329231542862      instructions              #    254845.07  insn per cycle
+  40560781844      branches                  #    74.126 M/sec
+   3590699793      branch-misses             #    8.85% of all branches
+  88453282397      L1-dcache-loads           #    161.651 M/sec
+  13611691069      L1-dcache-load-misses     #    15.39% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX8> (2 threads parallel documents)
+
+     260008.290887      task-clock (msec)         #    1.187 CPUs utilized
+                72      context-switches          #    0.000 K/sec
+                 0      cpu-migrations            #    0.000 K/sec
+              6173      page-faults               #    0.024 K/sec
+             82022      cycles                    #    0.000 GHz
+      955554015647      instructions              # 11649972.15  insn per cycle
+       81712251352      branches                  #  314.268 M/sec
+        3608570908      branch-misses             #    4.42% of all branches
+      344548813370      L1-dcache-loads           # 1325.145 M/sec
+       50061309960      L1-dcache-load-misses     #   14.53% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX8> (4 threads parallel documents)
+
+334536.684299      task-clock (msec)         #    1.923 CPUs utilized
+          231      context-switches          #    0.001 K/sec
+            0      cpu-migrations            #    0.000 K/sec
+        18517      page-faults               #    0.055 K/sec
+        80267      cycles                    #    0.000 GHz
+ 954454631703      instructions              #    11890996.69  insn per cycle
+  81522445782      branches                  #    243.688 M/sec
+   3597811915      branch-misses             #    4.41% of all branches
+ 344146120261      L1-dcache-loads           #    1028.725 M/sec
+  50044656504      L1-dcache-load-misses     #    14.54% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX8> (8 threads parallel documents)
+
+490490.695614      task-clock (msec)         #    3.272 CPUs utilized
+          860      context-switches          #    0.002 K/sec
+            0      cpu-migrations            #    0.000 K/sec
+        43205      page-faults               #    0.088 K/sec
+        92706      cycles                    #    0.000 GHz
+ 954483600812      instructions              #    10295812.58  insn per cycle
+  81524930040      branches                  #    166.211 M/sec
+   3595969008      branch-misses             #    4.41% of all branches
+ 344122608895      L1-dcache-loads           #    701.588 M/sec
+  50039362686      L1-dcache-load-misses     #    14.54% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX8> (16 threads parallel documents)
+
+876340.277897      task-clock (msec)         #    6.091 CPUs utilized
+         3257      context-switches          #    0.004 K/sec
+            0      cpu-migrations            #    0.000 K/sec
+        92583      page-faults               #    0.106 K/sec
+        86315      cycles                    #    0.000 GHz
+ 955240867197      instructions              #    11066916.15  insn per cycle
+  81663492924      branches                  #    93.187 M/sec
+   3608928591      branch-misses             #    4.42% of all branches
+ 344355122405      L1-dcache-loads           #    392.947 M/sec
+  50085226423      L1-dcache-load-misses     #    14.54% of all L1-dcache hits
+
+
+
+SIMDRapidScorer<SIMD512InfoX8> (32 threads parallel documents)
+
+1798124.738556      task-clock (msec)         #   11.996 CPUs utilized
+          9587      context-switches          #    0.005 K/sec
+            36      cpu-migrations            #    0.000 K/sec
+        185676      page-faults               #    0.103 K/sec
+         87741      cycles                    #    0.000 GHz
+  954346053931      instructions              #    10876854.08  insn per cycle
+   81514113224      branches                  #    45.333 M/sec
+    3566547176      branch-misses             #    4.38% of all branches
+  343935409551      L1-dcache-loads           #    191.274 M/sec
+   54087402324      L1-dcache-load-misses     #    15.73% of all L1-dcache hits

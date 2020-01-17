@@ -117,11 +117,12 @@ std::vector<double> parseScores(const unsigned int fold, const unsigned long max
 	return ret;
 }
 
-#define MAX_DOCUMENTS 10000
+#define MAX_DOCUMENTS 100000
 #define FOLD 1
 
 template<typename Scorer>
-std::vector<std::shared_ptr<Testable>> generateTests(bool parallelFeature = true, bool parallelDocuments = true, bool parallelForest = true) {
+std::vector<std::shared_ptr<Testable>>
+generateTests(bool parallelFeature = true, bool parallelDocuments = true, bool parallelForest = true) {
 	std::vector<std::shared_ptr<Testable>> ret;
 	ret.push_back(std::make_shared<TestCase<Scorer>>(Config<Scorer>::serial(), MAX_DOCUMENTS, FOLD));
 
@@ -158,37 +159,15 @@ std::vector<T> flatten(const std::vector<std::vector<T>> &vector) {
 	return ret;
 }
 
-const std::vector<std::shared_ptr<Testable>> TESTS2 = {
-		std::make_shared<TestCase<SIMDRapidScorer<SIMD256InfoX32>>>(Config<SIMDRapidScorer<SIMD256InfoX32>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.36083ms
-		std::make_shared<TestCase<SIMDRapidScorer<SIMD512InfoX64>>>(Config<SIMDRapidScorer<SIMD512InfoX64>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.19378sms
-		/*std::make_shared<TestCase<SIMDRapidScorer<SIMD256InfoX16>>>(Config<SIMDRapidScorer<SIMD256InfoX16>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.10317ms
-		std::make_shared<TestCase<SIMDRapidScorer<SIMD256InfoX8>>>(Config<SIMDRapidScorer<SIMD256InfoX8>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.55809sms
-		std::make_shared<TestCase<SIMDRapidScorer<SIMD512InfoX16>>>(Config<SIMDRapidScorer<SIMD512InfoX16>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.2211sms
-		std::make_shared<TestCase<SIMDRapidScorer<SIMD128InfoX16>>>(Config<SIMDRapidScorer<SIMD128InfoX16>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.29232ms
-		std::make_shared<TestCase<SIMDRapidScorer<SIMD512InfoX32>>>(Config<SIMDRapidScorer<SIMD512InfoX32>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.41965sms
-		std::make_shared<TestCase<SIMDRapidScorer<SIMD128InfoX8>>>(Config<SIMDRapidScorer<SIMD128InfoX8>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.70141sms
-		std::make_shared<TestCase<SIMDRapidScorer<SIMD512InfoX8>>>(Config<SIMDRapidScorer<SIMD512InfoX8>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 2.72587sms
-*/
-		/*
-		 * std::make_shared<TestCase<MergedRapidScorer<uint64_t>>>(Config<MergedRapidScorer<uint64_t>>::serial(), MAX_DOCUMENTS, FOLD),//
-		std::make_shared<TestCase<LinearizedRapidScorer<uint64_t>>>(Config<LinearizedRapidScorer<uint64_t>>::serial(), MAX_DOCUMENTS, FOLD),//
-
-		std::make_shared<TestCase<MergedRapidScorer<uint32_t>>>(Config<MergedRapidScorer<uint32_t>>::serial(), MAX_DOCUMENTS, FOLD),//AWS: 16.1904ms	Mmarco: 13.4952ms
-		std::make_shared<TestCase<LinearizedRapidScorer<uint32_t>>>(Config<LinearizedRapidScorer<uint32_t>>::serial(), MAX_DOCUMENTS, FOLD),//
-
-		std::make_shared<TestCase<MergedRapidScorer<uint16_t>>>(Config<MergedRapidScorer<uint16_t>>::serial(), MAX_DOCUMENTS, FOLD),//
-		std::make_shared<TestCase<LinearizedRapidScorer<uint16_t>>>(Config<LinearizedRapidScorer<uint16_t>>::serial(), MAX_DOCUMENTS, FOLD),//
-
-		std::make_shared<TestCase<MergedRapidScorer<uint8_t>>>(Config<MergedRapidScorer<uint8_t>>::serial(), MAX_DOCUMENTS, FOLD),//
-		std::make_shared<TestCase<LinearizedRapidScorer<uint8_t>>>(Config<LinearizedRapidScorer<uint8_t>>::serial(), MAX_DOCUMENTS, FOLD),//
-		 */
+const std::vector<std::shared_ptr<Testable>> TESTS = {
+		std::make_shared<TestCase<SIMDRapidScorer<SIMD512InfoX8>>>(Config<SIMDRapidScorer<SIMD512InfoX8>>::parallelDocuments(32), MAX_DOCUMENTS, FOLD)
 };
 
 
-const auto TESTS = flatten<std::shared_ptr<Testable>>(
+const auto TESTS2 = flatten<std::shared_ptr<Testable>>(
 		{
-				/*generateTests<MergedRapidScorer<uint8_t>>(),
-				generateTests<MergedRapidScorer<uint16_t>>(),
+				generateTests<MergedRapidScorer<uint8_t>>(false, false, false),
+				/*generateTests<MergedRapidScorer<uint16_t>>(),
 				generateTests<MergedRapidScorer<uint32_t>>(),
 				generateTests<MergedRapidScorer<uint64_t>>(),
 
@@ -244,16 +223,17 @@ int main() {
 
 		const auto tests = testsForFold(fold);
 
-		const unsigned long max_documents = std::max_element(tests.begin(), tests.end(), [](const std::shared_ptr<Testable> &t1, const std::shared_ptr<Testable> &t2) -> bool {
-			return t1->max_documents < t2->max_documents;
-		})->get()->max_documents;
+		const unsigned long max_documents = std::max_element(tests.begin(), tests.end(),
+															 [](const std::shared_ptr<Testable> &t1,
+																const std::shared_ptr<Testable> &t2) -> bool {
+																 return t1->max_documents < t2->max_documents;
+															 })->get()->max_documents;
 
 		const auto &trees = parseTrees(fold);
 		const auto &documents = parseDocuments(fold, max_documents);
 		const auto &testScores = parseScores(fold, max_documents);
 
 		assert(documents.size() == testScores.size());
-
 
 		for (auto &test : tests) {
 			test->test(trees, documents, testScores);

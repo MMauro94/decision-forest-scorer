@@ -58,7 +58,7 @@ class TestCase : public Testable {
 			const unsigned long total_groups = std::min(Testable::max_documents / documents_per_group + (Testable::max_documents % documents_per_group == 0 ? 0 : 1), docGroups.size());
 
 			auto t1 = std::chrono::high_resolution_clock::now();
-#pragma omp parallel for num_threads(config.number_of_threads) if(config.parallel_documents) default(none), shared(scorer), shared(testScores), shared(std::cout), shared(docGroups), shared(t1)
+#pragma omp parallel for num_threads(config.number_of_threads) if(config.parallel_documents) default(none), shared(scorer, testScores, std::cout, docGroups, t1)
 			for (int i = 0; i < total_groups; i++) {
 				const auto score = scorer.score(docGroups[i]);
 

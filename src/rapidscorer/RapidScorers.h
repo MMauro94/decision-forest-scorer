@@ -4,9 +4,6 @@
 #include <memory>
 #include <algorithm>
 #include "../Config.h"
-#include "../Tree.h"
-#include "../EqNode.h"
-#include "../ResultMask.h"
 
 template<class RapidScorer>
 class RapidScorers {
