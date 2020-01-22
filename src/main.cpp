@@ -5,7 +5,6 @@
 #include "TestCase.h"
 #include "SIMDInfo.h"
 #include "rapidscorer/MergedRapidScorer.h"
-#include "rapidscorer/SIMDRapidScorer.h"
 #include "rapidscorer/LinearizedRapidScorer.h"
 #include "rapidscorer/EqNodesRapidScorer.h"
 #include <fstream>
@@ -188,10 +187,10 @@ std::vector<T> flatten(const std::vector<std::vector<T>> &vector) {
  */
 const auto TESTS = flatten<std::shared_ptr<Testable>>(
 		{
+				generateTests<MergedRapidScorer<uint64_t>>(),
 				generateTests<MergedRapidScorer<uint8_t>>(false, false, false),
 				generateTests<MergedRapidScorer<uint16_t>>(),
 				generateTests<MergedRapidScorer<uint32_t>>(),
-				generateTests<MergedRapidScorer<uint64_t>>(),
 
 				generateTests<LinearizedRapidScorer<uint8_t>>(false, false, false),
 				generateTests<LinearizedRapidScorer<uint16_t>>(false, false, false),
@@ -203,7 +202,7 @@ const auto TESTS = flatten<std::shared_ptr<Testable>>(
 				generateTests<EqNodesRapidScorer<uint32_t>>(false, false, false),
 				generateTests<EqNodesRapidScorer<uint64_t>>(false, false, false),
 
-				generateTests<SIMDRapidScorer<SIMD256InfoX8>>(false, true, true),
+				/*generateTests<SIMDRapidScorer<SIMD256InfoX8>>(false, true, true),
 				generateTests<SIMDRapidScorer<SIMD256InfoX16>>(false, true, true),
 				generateTests<SIMDRapidScorer<SIMD256InfoX32>>(false, true, true),
 
@@ -213,7 +212,7 @@ const auto TESTS = flatten<std::shared_ptr<Testable>>(
 				generateTests<SIMDRapidScorer<SIMD512InfoX64>>(false, true, true),
 
 				generateTests<SIMDRapidScorer<SIMD128InfoX8>>(false, true, true),
-				generateTests<SIMDRapidScorer<SIMD128InfoX16>>(false, true, true),
+				generateTests<SIMDRapidScorer<SIMD128InfoX16>>(false, true, true),*/
 		});
 
 
