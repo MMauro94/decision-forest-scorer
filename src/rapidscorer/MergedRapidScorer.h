@@ -115,10 +115,10 @@ class SingleFeatureMergedRapidScorer {
 				}
 			}
 			this->featureThresholdToOffset.emplace_back(nodes.size());
-			std::cout << "Feature " << featureIndex << ": " << nodes.size() << " nodes, \t" <<
+			/*std::cout << "Feature " << featureIndex << ": " << nodes.size() << " nodes, \t" <<
 					  this->lastBlocks.size() << " last blocks, \t" <<
 					  this->featureThresholds.size() << " thresholds, \t" <<
-					  std::endl;
+					  std::endl;*/
 		}
 
 		void score(const DocGroup &document, ResultMask<Block> &result) const {
