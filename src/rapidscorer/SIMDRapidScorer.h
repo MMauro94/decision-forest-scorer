@@ -13,6 +13,9 @@
 template<typename SIMDInfo>
 class SingleFeatureSIMDRapidScorer;
 
+/**
+ * A variation of MergedRapidScorer to allow evaluating more documents in parallel with SIMD.
+ */
 template<typename SIMDInfo>
 class SIMDRapidScorer {
 
@@ -34,7 +37,7 @@ class SIMDRapidScorer {
 			SIMDResultMask<SIMDInfo> result(this->forest);
 
 			unsigned long max = this->featureScorers.size();
-#pragma omp parallel for num_threads(this->config.number_of_threads) if(this->config.parallel_mask) default(none) shared(result) shared(document) shared(max)
+#pragma omp parallel for num_threads(this->config.number_of_threads) if(this->config.parallel_features) default(none) shared(result) shared(document) shared(max)
 			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
 				featureScorers[featureIndex].score(document, result);
 			}

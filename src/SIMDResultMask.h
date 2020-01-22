@@ -16,6 +16,10 @@
 #include "Tree.h"
 #include "Epitome.h"
 
+/**
+ * A ResultMask specialized to use SIMD.
+ * This class allows to update the scores of the documents with an epitome.
+ */
 template<typename SIMDInfo>
 class SIMDResultMask {
 	private:
@@ -32,17 +36,23 @@ class SIMDResultMask {
 
 		explicit SIMDResultMask(std::shared_ptr<Forest> forest) :
 				_forest(std::move(forest)),
-				masksPerTree(this->_forest->maximumNumberOfLeafs() / SIMDInfo::bits + 1) {
+				masksPerTree(this->_forest->maximumNumberOfLeaves() / SIMDInfo::bits + 1) {
 			simd_type ones = SIMDInfo::set1(-1);
 			for (unsigned long i = 0; i < this->_forest->trees.size() * this->masksPerTree; i++) {
 				this->results.push_back(ones);
 			}
 		}
 
+		/**
+		 * Changes the result masks of the documents according to the given epitome.
+		 */
 		void applyMask(const Epitome<simd_base_type> &epitome, const unsigned int treeIndex, simd_mask_type mask) {
 			this->applyMask(epitome.firstBlock, epitome.firstBlockPosition, epitome.lastBlock, epitome.lastBlockPosition, treeIndex, mask);
 		}
 
+		/**
+		 * Changes the result masks of the documents according to the given epitome data
+		 */
 		void applyMask(simd_base_type firstBlock, u_int8_t firstBlockPosition, simd_base_type lastBlock, u_int8_t lastBlockPosition, const unsigned int treeIndex, simd_mask_type mask) {
 			unsigned int start = treeIndex * this->masksPerTree;
 
@@ -68,11 +78,13 @@ class SIMDResultMask {
 			}
 		}
 
+		/**
+		 * Compute the scored of the documents according to the internal result mask.
+		 */
 		template<typename Scorer>
 		[[nodiscard]] std::vector<double> computeScore(const Config<Scorer> &config) const {
 			const auto simdGroups = SIMDInfo::groups;
 			std::vector<double> scores(simdGroups, 0.0);
-#pragma omp parallel for num_threads(config.number_of_threads) if(config.parallel_score) default(none) shared(scores)
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
 				if (sizeof(simd_base_type) > 1) {
 					alignas(SIMDInfo::bits) simd_base_type leafIndexes[simdGroups];
@@ -90,16 +102,21 @@ class SIMDResultMask {
 
 	private:
 
+		/**
+		 * Changes the scores according to leafIndexes
+		 */
 		template<typename T>
 		void updateScores(std::vector<double> &scores, unsigned long treeIndex, T leafIndexes[]) const {
 			auto &tree = this->_forest->trees[treeIndex];
 			for (unsigned int j = 0; j < SIMDInfo::groups; j++) {
 				double s = tree.scoreByLeafIndex(leafIndexes[j]);
-#pragma omp atomic update //TODO: fa atomic anche quando è in un parallelismo per cui atomic non serve?
 				scores[j] += s;
 			}
 		}
 
+		/**
+		 * Calculates the first bit set to 1 in the result masks, and stores it inside the toFill
+		 */
 		void firstOneInPlace(unsigned long tree_index, simd_base_type *toFill) const {
 			simd_mask_type found_results = -1;
 			simd_type zero = SIMDInfo::setZero();
@@ -119,6 +136,9 @@ class SIMDResultMask {
 			SIMDInfo::store(toFill, result);
 		}
 
+		/**
+		 * Calculates the first bit set to 1 in the result masks, and stores it inside the toFill array
+		 */
 		void firstOneInArray(unsigned long tree_index, unsigned int *toFill) const {
 			simd_mask_type found_results = -1;
 			simd_type zero = SIMDInfo::setZero();

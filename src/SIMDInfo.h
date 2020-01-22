@@ -1,6 +1,5 @@
-//
-// Created by molin on 28/12/2019.
-//
+// Those classes contain various information to allow using SIMD, abstracting the actual implementation.
+// This allows to generalize the algorithm, without being dependent on a particular SIMD configuration
 
 #ifndef FOREST_TREE_EVALUATOR_SIMDINFO_H
 #define FOREST_TREE_EVALUATOR_SIMDINFO_H
@@ -269,6 +268,7 @@ class SIMD256InfoX8 {
 			return _mm256_mask_and_epi32(source, mask, a, b);
 		}
 };
+
 class SIMD256InfoX16 {
 	public:
 		typedef uint16_t base_type;

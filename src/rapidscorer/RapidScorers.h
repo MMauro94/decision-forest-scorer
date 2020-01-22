@@ -5,6 +5,9 @@
 #include <algorithm>
 #include "../Config.h"
 
+/**
+ * A class that calls score on the given RapidScorers in parallel.
+ */
 template<class RapidScorer>
 class RapidScorers {
 		Config<RapidScorer> config;

@@ -8,6 +8,11 @@
 #include "Tree.h"
 #include "Epitome.h"
 
+/**
+ * A class that holds all the information required to update a ResultMask
+ * with an Epitome. In particular, contains the Epitome, the index of the feature,
+ * the index of the tree and the associated featureThreshold.
+ */
 template <typename Block>
 class EqNode {
 
@@ -24,6 +29,9 @@ class EqNode {
 																						   epitome(epitome) {
 		}
 
+		/**
+		 * A method to compare the EqNodes to sort them by feature and then threshold
+		 */
 		bool operator<(const EqNode<Block> &rhs) const {
 			if (featureIndex < rhs.featureIndex) return true;
 			else if (featureIndex > rhs.featureIndex) return false;

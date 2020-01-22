@@ -14,8 +14,11 @@
 
 std::string DOCUMENTS_ROOT = "documents";
 
-template<class GheSboro>
-std::shared_ptr<Node> parseNode(const GheSboro &json) {
+/**
+ * Parses a node of the json model
+ */
+template<class T>
+std::shared_ptr<Node> parseNode(const T &json) {
 	if (json.HasMember("split_feature")) {
 		//Internal
 		assert(json["decision_type"] == "<=");
@@ -32,12 +35,18 @@ std::shared_ptr<Node> parseNode(const GheSboro &json) {
 	}
 }
 
-template<class GheSboro>
-Tree parseTree(const GheSboro &json) {
+/**
+ * Parses a tree of the json model
+ */
+template<class T>
+Tree parseTree(const T &json) {
 	auto root = parseNode(json["tree_structure"].GetObject());
 	return Tree(std::dynamic_pointer_cast<InternalNode>(root));
 }
 
+/**
+ * Parses the json model of the given fold
+ */
 std::vector<Tree> parseTrees(const unsigned int fold) {
 	auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -68,6 +77,9 @@ std::vector<Tree> parseTrees(const unsigned int fold) {
 	return trees;
 }
 
+/**
+ * Parses the document in the given line
+ */
 std::vector<double> parseDocumentLine(const std::string &line) {
 	std::istringstream ss(line);
 	std::string token;
@@ -87,6 +99,9 @@ std::vector<double> parseDocumentLine(const std::string &line) {
 	return ret;
 }
 
+/**
+ * Parses the documents inside the given fold. If max >0, stops after max documents
+ */
 std::vector<std::vector<double>> parseDocuments(const unsigned int fold, const unsigned long max = 0u) {
 	std::cout << "Parsing documents... ";
 
@@ -104,6 +119,9 @@ std::vector<std::vector<double>> parseDocuments(const unsigned int fold, const u
 	return ret;
 }
 
+/**
+ * Parses all the scores. If max >0, stops after max documents
+ */
 std::vector<double> parseScores(const unsigned int fold, const unsigned long max = 0) {
 	std::cout << "Parsing scores...";
 	std::ifstream file;
@@ -120,6 +138,9 @@ std::vector<double> parseScores(const unsigned int fold, const unsigned long max
 #define MAX_DOCUMENTS 100000
 #define FOLD 1
 
+/**
+ * Generate all the TestCase for the given parameters
+ */
 template<typename Scorer>
 std::vector<std::shared_ptr<Testable>>
 generateTests(bool parallelFeature = true, bool parallelDocuments = true, bool parallelForest = true) {
@@ -150,6 +171,9 @@ generateTests(bool parallelFeature = true, bool parallelDocuments = true, bool p
 	return ret;
 }
 
+/**
+ * Flattens a matrix
+ */
 template<typename T>
 std::vector<T> flatten(const std::vector<std::vector<T>> &vector) {
 	std::vector<T> ret;
@@ -159,15 +183,13 @@ std::vector<T> flatten(const std::vector<std::vector<T>> &vector) {
 	return ret;
 }
 
-const std::vector<std::shared_ptr<Testable>> TESTS = {
-		std::make_shared<TestCase<SIMDRapidScorer<SIMD128InfoX16>>>(Config<SIMDRapidScorer<SIMD128InfoX16>>::serial(), MAX_DOCUMENTS, FOLD)
-};
-
-
-const auto TESTS2 = flatten<std::shared_ptr<Testable>>(
+/**
+ * All the test cases to evaluate
+ */
+const auto TESTS = flatten<std::shared_ptr<Testable>>(
 		{
 				generateTests<MergedRapidScorer<uint8_t>>(false, false, false),
-				/*generateTests<MergedRapidScorer<uint16_t>>(),
+				generateTests<MergedRapidScorer<uint16_t>>(),
 				generateTests<MergedRapidScorer<uint32_t>>(),
 				generateTests<MergedRapidScorer<uint64_t>>(),
 
@@ -179,9 +201,9 @@ const auto TESTS2 = flatten<std::shared_ptr<Testable>>(
 				generateTests<EqNodesRapidScorer<uint8_t>>(false, false, false),
 				generateTests<EqNodesRapidScorer<uint16_t>>(false, false, false),
 				generateTests<EqNodesRapidScorer<uint32_t>>(false, false, false),
-				generateTests<EqNodesRapidScorer<uint64_t>>(false, false, false),*/
+				generateTests<EqNodesRapidScorer<uint64_t>>(false, false, false),
 
-				/*generateTests<SIMDRapidScorer<SIMD256InfoX8>>(false, true, true),
+				generateTests<SIMDRapidScorer<SIMD256InfoX8>>(false, true, true),
 				generateTests<SIMDRapidScorer<SIMD256InfoX16>>(false, true, true),
 				generateTests<SIMDRapidScorer<SIMD256InfoX32>>(false, true, true),
 
@@ -191,10 +213,13 @@ const auto TESTS2 = flatten<std::shared_ptr<Testable>>(
 				generateTests<SIMDRapidScorer<SIMD512InfoX64>>(false, true, true),
 
 				generateTests<SIMDRapidScorer<SIMD128InfoX8>>(false, true, true),
-				generateTests<SIMDRapidScorer<SIMD128InfoX16>>(false, true, true),*/
+				generateTests<SIMDRapidScorer<SIMD128InfoX16>>(false, true, true),
 		});
 
 
+/**
+ * All the folds needed to be parsed for the required tests
+ */
 std::set<unsigned int> detectFolds() {
 	std::set<unsigned int> folds;
 	for (auto &test : TESTS) {
@@ -203,6 +228,9 @@ std::set<unsigned int> detectFolds() {
 	return folds;
 }
 
+/**
+ * The tests to perform for a given case
+ */
 std::vector<std::shared_ptr<Testable>> testsForFold(unsigned int fold) {
 	std::vector<std::shared_ptr<Testable>> tests;
 	for (auto &test : TESTS) {
@@ -213,6 +241,9 @@ std::vector<std::shared_ptr<Testable>> testsForFold(unsigned int fold) {
 	return tests;
 }
 
+/**
+ * Tests all the TextCases inside the vector TEST
+ */
 int main() {
 	std::cout.setf(std::ios::unitbuf);
 

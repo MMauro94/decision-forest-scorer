@@ -8,6 +8,9 @@
 #include "../DocGroup.h"
 #include "../Config.h"
 
+/**
+ * The basic implementation of RapidScorer. The data is saved inside EqNode.
+ */
 template <typename Block>
 class EqNodesRapidScorer {
 
@@ -17,8 +20,8 @@ class EqNodesRapidScorer {
 		std::vector<unsigned int> offsets;
 
 		void addNodes(const std::shared_ptr<InternalNode> &node) {
-			eqNodes.emplace_back(node, Epitome<Block>(this->forest->trees[node->getTreeIndex()].countLeafsUntil(node),
-													  node->leftNode->numberOfLeafs()));
+			eqNodes.emplace_back(node, Epitome<Block>(this->forest->trees[node->getTreeIndex()].countLeavesUntil(node),
+													  node->leftNode->numberOfLeaves()));
 
 			auto leftAsInternalNode = std::dynamic_pointer_cast<InternalNode>(node->leftNode);
 			auto rightAsInternalNode = std::dynamic_pointer_cast<InternalNode>(node->rightNode);
@@ -52,7 +55,7 @@ class EqNodesRapidScorer {
 			ResultMask<Block> result(this->forest);
 
 			unsigned long max = this->offsets.size();
-#pragma omp parallel for num_threads(this->config.number_of_threads) if(this->config.parallel_mask) default(none) shared(result) shared(document) shared(max)
+#pragma omp parallel for num_threads(this->config.number_of_threads) if(this->config.parallel_features) default(none) shared(result) shared(document) shared(max)
 			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
 				double value = document.features[featureIndex];
 				for (unsigned long j = this->offsets[featureIndex];

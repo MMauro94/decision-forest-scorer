@@ -8,7 +8,9 @@
 #include <utility>
 #include <vector>
 
-
+/**
+ * A class that contains a single document
+ */
 class SingleDocument {
 	public:
 		std::vector<double> features;
@@ -29,6 +31,10 @@ class SingleDocument {
 		}
 };
 
+/**
+ * A class that holds DOCS documents. Used on SIMD to evaluate more documents
+ * at the same time.
+ */
 template<int DOCS>
 class MultiSIMDDocumentGroup {
 		/**

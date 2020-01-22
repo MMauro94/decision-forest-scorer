@@ -14,6 +14,9 @@
 #include <immintrin.h>
 #include "Config.h"
 
+/**
+ * An Epitome. Contains a representation of a bitmask used to update the ResultMask
+ */
 template<typename Block>
 class Epitome {
 	protected:
@@ -25,9 +28,12 @@ class Epitome {
 		uint8_t lastBlockPosition;
 
 
-
 		Epitome(const Epitome &other) = default;
 
+		/**
+		 * Creates an Epitome that represents a mask composed by
+		 * leftOnes ones and middleZeroes zeros
+		 */
 		Epitome(unsigned int leftOnes, unsigned int middleZeroes) {
 			if (middleZeroes == 0) {
 				throw std::invalid_argument("middleZeroes == 0");
@@ -59,6 +65,9 @@ class Epitome {
 			return os;
 		}
 
+		/**
+		 * Returns a representation of this Epitome
+		 */
 		[[nodiscard]] std::string toString(bool separateBytes) const {
 			std::string ret;
 

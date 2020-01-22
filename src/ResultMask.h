@@ -17,6 +17,9 @@
 #include "Epitome.h"
 #include <immintrin.h>
 
+/**
+ * This class allows to update the scores of the documents with an epitome.
+ */
 template<typename Block>
 class ResultMask {
 	private:
@@ -30,13 +33,19 @@ class ResultMask {
 
 		explicit ResultMask(std::shared_ptr<Forest> forest) :
 				_forest(std::move(forest)),
-				masksPerTree(this->_forest->maximumNumberOfLeafs() / MaskSize + 1),
+				masksPerTree(this->_forest->maximumNumberOfLeaves() / MaskSize + 1),
 				results(this->_forest->trees.size() * this->masksPerTree, -1) {}
 
+		/**
+		 * Changes the result masks of the document according to the given epitome.
+		 */
 		void applyMask(const Epitome<Block> &epitome, const unsigned int treeIndex) {
 			applyMask(epitome.firstBlock, epitome.firstBlockPosition, epitome.lastBlock, epitome.lastBlockPosition, treeIndex);
 		}
 
+		/**
+		 * Changes the result masks of the document according to the given epitome data
+		 */
 		void applyMask(Block firstBlock, uint8_t firstBlockPosition, Block lastBlock, uint8_t lastBlockPosition, const unsigned int treeIndex) {
 			unsigned int start = treeIndex * masksPerTree;
 #pragma omp atomic update//TODO: fa atomic anche quando è in un parallelismo per cui atomic non serve?
@@ -52,6 +61,9 @@ class ResultMask {
 			}
 		}
 
+		/**
+		 * Compute the scored of the documents according to the internal result mask.
+		 */
 		template<typename Scorer>
 		[[nodiscard]] double computeScore(const Config<Scorer> &config) const {
 			double score = 0.0;
@@ -66,6 +78,9 @@ class ResultMask {
 
 	private:
 
+		/**
+		 * Calculates the first bit set to 1 in the result mask
+		 */
 		[[nodiscard]] unsigned long firstOne(unsigned long treeIndex) const {
 			unsigned long baseIndex = this->masksPerTree * treeIndex;
 

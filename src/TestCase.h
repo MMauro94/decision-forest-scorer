@@ -13,6 +13,10 @@
 
 #define TEST_EQUALITY_THRESHOLD 0.00001
 
+/**
+ * A descriptor for a particular test.
+ * In particular, specifies the maximum number of documents to score, and on which fold read the documents
+ */
 class Testable {
 	public:
 		const unsigned long max_documents;
@@ -23,6 +27,9 @@ class Testable {
 		virtual long test(const std::vector<Tree> &trees, const std::vector<std::vector<double>> &documents, const std::vector<double> &testScores) = 0;
 };
 
+/**
+ * A testable that contains also a config.
+ */
 template<typename Scorer>
 class TestCase : public Testable {
 		const Config<Scorer> config;
@@ -30,6 +37,9 @@ class TestCase : public Testable {
 	public:
 		TestCase(const Config<Scorer> &config, const unsigned long max_documents, const unsigned int fold) : config(config), Testable(max_documents, fold) {}
 
+		/**
+		 * Performs a test on the given documents and trees. The score is checked against testScores
+		 */
 		long test(const std::vector<Tree> &trees, const std::vector<std::vector<double>> &documents, const std::vector<double> &testScores) override {
 			std::cout << std::endl;
 			std::cout << "STARTING TEST (max_documents=" << Testable::max_documents << ")" << std::endl;

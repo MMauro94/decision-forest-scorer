@@ -11,6 +11,13 @@
 template<typename Block>
 class SingleFeatureMergedRapidScorer;
 
+/**
+ * A rapid scorer that implements all the optimizations explained in the paper.
+ * In particular, the thresholds are saved only when different, the last part of the epitome
+ * is saved only when differs from the first one.
+ *
+ * To simplify the implementation, each feature is encapsulated on its own class, called SingleFeatureMergedRapidScorer.
+ */
 template<typename Block>
 class MergedRapidScorer {
 
@@ -32,7 +39,7 @@ class MergedRapidScorer {
 			ResultMask<Block> result(this->forest);
 
 			unsigned long max = this->featureScorers.size();
-#pragma omp parallel for num_threads(this->config.number_of_threads) if(this->config.parallel_mask) default(none) shared(result) shared(document) shared(max)
+#pragma omp parallel for num_threads(this->config.number_of_threads) if(this->config.parallel_features) default(none) shared(result) shared(document) shared(max)
 			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
 				featureScorers[featureIndex].score(document, result);
 			}
@@ -96,7 +103,7 @@ class SingleFeatureMergedRapidScorer {
 					this->featureThresholdToOffset.emplace_back(i);
 				}
 				this->treeIndexes.emplace_back(node->getTreeIndex());
-				auto ep = Epitome<Block>(forest->trees[node->getTreeIndex()].countLeafsUntil(node), node->leftNode->numberOfLeafs());
+				auto ep = Epitome<Block>(forest->trees[node->getTreeIndex()].countLeavesUntil(node), node->leftNode->numberOfLeaves());
 				this->firstBlocks.emplace_back(ep.firstBlock);
 				this->firstBlockPositions.emplace_back(ep.firstBlockPosition);
 				if (ep.firstBlockPosition != ep.lastBlockPosition) {
@@ -113,6 +120,7 @@ class SingleFeatureMergedRapidScorer {
 					  this->featureThresholds.size() << " thresholds, \t" <<
 					  std::endl;*/
 		}
+
 		void score(const DocGroup &document, ResultMask<Block> &result) const {
 			unsigned long thresholdIndex = std::lower_bound(this->featureThresholds.begin(), this->featureThresholds.end(), document.features[this->featureIndex]) - this->featureThresholds.begin();
 			unsigned int epitomesToEpitome = this->featureThresholdToOffset[thresholdIndex];

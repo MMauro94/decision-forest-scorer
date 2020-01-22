@@ -8,6 +8,12 @@
 #include "../DocGroup.h"
 #include "../Config.h"
 
+/**
+ * An improvement over EqNodesRapidScorer: instead of saving the EqNodes, the single
+ * components are saved in a vector independently.
+ *
+ * This improves the alignment of the data.
+ */
 template <typename Block>
 class LinearizedRapidScorer {
 
@@ -53,8 +59,8 @@ class LinearizedRapidScorer {
 			for (auto &node : nodes) {
 				this->featureThresholds.emplace_back(node->splittingThreshold);
 				this->treeIndexes.emplace_back(node->getTreeIndex());
-				this->epitomes.emplace_back(this->forest->trees[node->getTreeIndex()].countLeafsUntil(node),
-											node->leftNode->numberOfLeafs());
+				this->epitomes.emplace_back(this->forest->trees[node->getTreeIndex()].countLeavesUntil(node),
+											node->leftNode->numberOfLeaves());
 
 				while (this->offsets.size() <= node->splittingFeatureIndex) {
 					this->offsets.emplace_back(i);
@@ -67,7 +73,7 @@ class LinearizedRapidScorer {
 			ResultMask<Block> result(this->forest);
 
 			unsigned long max = this->offsets.size();
-#pragma omp parallel for num_threads(this->config.number_of_threads) if(this->config.parallel_mask) default(none) shared(result) shared(document) shared(max)
+#pragma omp parallel for num_threads(this->config.number_of_threads) if(this->config.parallel_features) default(none) shared(result) shared(document) shared(max)
 			for (unsigned long featureIndex = 0; featureIndex < max; featureIndex++) {
 				double value = document.features[featureIndex];
 				unsigned int start = this->offsets[featureIndex];
