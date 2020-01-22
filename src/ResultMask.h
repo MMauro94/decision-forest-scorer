@@ -71,7 +71,7 @@ class ResultMask {
 			for (unsigned long i = 0; i < this->_forest->trees.size(); i++) {
 				auto leafIndex = this->firstOne(i);
 				auto &tree = this->_forest->trees[i];
-				score += tree.scoreByLeafIndex(leafIndex);//TODO: capire se c'è un modo meglio di ottenere questo score
+				score += tree.scoreByLeafIndex(leafIndex);
 			}
 			return score;
 		}
