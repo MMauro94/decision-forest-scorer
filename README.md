@@ -1,4 +1,4 @@
-# forest-tree-evaluator
+# decision-forest-scorer
 
 Project for the High Performance Computing Cource, Unive, 2019/2020.
 
