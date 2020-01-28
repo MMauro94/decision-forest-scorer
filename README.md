@@ -1,6 +1,6 @@
 # decision-forest-scorer
 
-Project for the High Performance Computing Cource, Unive, 2019/2020.
+Project for the High Performance Computing Course, Unive, 2019/2020.
 
 Francesco Benvenuto 858843  
 Marco Marangoni 858450  
